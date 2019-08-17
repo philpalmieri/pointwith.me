@@ -1,2 +1,0 @@
-# pointwith.me
-PointWith.me
