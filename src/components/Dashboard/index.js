@@ -1,11 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Container, Button, Divider } from 'semantic-ui-react';
+import { 
+  Button,
+  Divider,
+  Card,
+  Container,
+} from 'semantic-ui-react';
 
+import { db, auth } from '../../firebase';
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import SocialProfileList from '../SocialProfileList';
-import { auth } from '../../firebase';
 
 class Dashboard extends Component {
   static propTypes = {
@@ -39,13 +44,36 @@ class Dashboard extends Component {
         //provider: () => auth.facebookOAuth()
       //}
     },
-    providerData: this.props.providerData
+    providerData: this.props.providerData,
+    pokerSessions: [
+      { id: 'abc', description: 'foobar', meta: 'baz' },
+    ],
   };
 
   componentDidMount() {
     this.updateProviders(this.state.providerData);
+    this.loadSessions();
   }
 
+  loadSessions = async () => {
+    const pokerSessionsRef = await db.pokerSessions();
+    console.log(pokerSessionsRef);
+    pokerSessionsRef.on('value', snapshot => {
+      let sessions = snapshot.val();
+      let newSessionState = [];
+      for (let session in sessions) {
+        console.log(session);
+        newSessionState.push({
+          id: session,
+          description: sessions[session].description,
+          meta: '10 points'
+        });
+      }
+      this.setState({
+        pokerSessions: newSessionState
+      });
+    });
+  }
   handleCurrentProviders = providerData => {
     this.updateProviders(providerData);
   };
@@ -102,6 +130,10 @@ class Dashboard extends Component {
             auth={auth.getAuth}
             currentProviders={this.handleCurrentProviders}
           />
+        </Container>
+        <Divider horizontal></Divider>
+        <Container>
+          <Card.Group items={this.state.pokerSessions} />
         </Container>
         <Divider horizontal></Divider>
         <Container>

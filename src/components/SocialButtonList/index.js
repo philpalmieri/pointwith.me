@@ -63,9 +63,8 @@ const SocialButtonList = ({ history, buttonList, auth, currentProviders }) => {
     const visible = buttonList[provder].visible;
 
     return (
-      <List.Item>
+      <List.Item key={provder}>
         <Button
-          key={provder}
           primary
           color={provder}
           circular

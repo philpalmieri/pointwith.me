@@ -1,6 +1,6 @@
 import React, { PureComponent, Fragment } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Image, Item } from 'semantic-ui-react'
+import { Button, Item } from 'semantic-ui-react'
 
 class SocialProfileList extends PureComponent {
   static propTypes = {
@@ -28,7 +28,7 @@ class SocialProfileList extends PureComponent {
     const providerName = providerId.split('.')[0];
 
     return (
-      <Item.Group>
+      <Item.Group key='providers'>
         <Item key={providerName}>
           <Item.Image
             src={photoURL}
