@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import * as moment from 'moment'
 import { 
   Button,
   Container,
@@ -11,6 +11,7 @@ import {
 } from 'semantic-ui-react';
 import { db, auth } from '../../firebase';
 import Layout from '../../containers/Layout';
+
 //const uuid = require('uuid/v1');
 const shortid = require('shortid');
 
@@ -28,7 +29,10 @@ class Dashboard extends Component {
   createPokerTable = (e) => {
     const pRef = db.pokerTablesRoot(this.state.currentUser.uid);
     pRef.child(shortid.generate())
-      .update({tableName: this.state.newPokerTableName});
+      .update({
+        tableName: this.state.newPokerTableName,
+        created: new Date(),
+      });
     this.setState({newPokerTableName: ''});
     this.loadPokerTables();
   }
@@ -44,11 +48,14 @@ class Dashboard extends Component {
       let newPokerTablesState = [];
       for (let table in pokerTables) {
         newPokerTablesState.push({
+          ...pokerTables[table],
           id: table,
-          tableName: pokerTables[table].tableName,
-          meta: '10 points'
         });
       }
+      newPokerTablesState.sort( (t1, t2) => {
+        if(t1.created > t2.created) return -1;
+        if(t2.created > t1.created) return 1;
+      });
       this.setState({
         pokerTables: newPokerTablesState
       });
@@ -76,9 +83,12 @@ class Dashboard extends Component {
             <List divided relaxed>
               {this.state.pokerTables.map((s) => (
                 <List.Item>
-                  <List.Content>
-                    <List.Header as='a'>{s.tableName}</List.Header>
-                    <List.Description as='a'>Table Id: {s.id}</List.Description>
+                  <List.Content as='a'>
+                    <List.Header>{s.tableName}</List.Header>
+                    <List.Description> 
+                        Table ID: {s.id} | 
+                        Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+                    </List.Description>
                   </List.Content>
                 </List.Item>
               ))}
