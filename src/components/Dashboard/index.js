@@ -55,6 +55,7 @@ class Dashboard extends Component {
       newPokerTablesState.sort( (t1, t2) => {
         if(t1.created > t2.created) return -1;
         if(t2.created > t1.created) return 1;
+        return 0;
       });
       this.setState({
         pokerTables: newPokerTablesState
@@ -80,19 +81,22 @@ class Dashboard extends Component {
                 <Button primary type='submit'>Create Poker Table</Button>
               </Form>
             </Segment>
-            <List divided relaxed>
-              {this.state.pokerTables.map((s) => (
-                <List.Item>
-                  <List.Content as='a'>
-                    <List.Header>{s.tableName}</List.Header>
-                    <List.Description> 
-                        Table ID: {s.id} | 
-                        Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
-                    </List.Description>
-                  </List.Content>
-                </List.Item>
-              ))}
-            </List>
+            <Segment stacked>
+              <Header as='h1'>Your Poker Tables</Header>
+              <List divided relaxed>
+                {this.state.pokerTables.map((s) => (
+                  <List.Item key={s.id}>
+                    <List.Content as='a'>
+                      <List.Header>{s.tableName}</List.Header>
+                      <List.Description>Table ID: {s.id}</List.Description>
+                      <List.Description>
+                          Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+                      </List.Description>
+                    </List.Content>
+                  </List.Item>
+                ))}
+              </List>
+            </Segment>
         </Container>
         <Divider horizontal></Divider>
         <Container>
