@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
-import './Layout.css';
+import { Container } from 'semantic-ui-react'
 
 const propTypes = {
   children: PropTypes.node.isRequired,
@@ -14,17 +13,19 @@ const defaultProps = {
 
 const Layout = ({ children, contentCenter }) => {
   return (
-    <section>
+    <Container text style={{ marginTim: '7em' }}>
       <header>
         <h1>PointWith.me: Planning Poker for Remote Teams!</h1>
       </header>
       <main className={contentCenter ? 'content-center' : ''}>{children}</main>
-      <footer>
-        <p>
-          &copy; 2019 Phillip Palmieri
-        </p>
-      </footer>
-    </section>
+      <Container>
+        <footer>
+          <p>
+            &copy; 2019 Phillip Palmieri
+          </p>
+        </footer>
+      </Container>
+    </Container>
   );
 };
 

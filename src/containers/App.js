@@ -6,8 +6,6 @@ import Dashboard from '../components/Dashboard';
 import About from '../components/About';
 import withAuthentication from '../containers/withAuthentication';
 
-import './App.css';
-
 class App extends Component {
   render() {
     return (

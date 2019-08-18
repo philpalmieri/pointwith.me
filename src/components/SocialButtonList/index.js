@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-
-import './SocialButtonList.css';
+import { Button, List } from 'semantic-ui-react'
 
 const propTypes = {
   buttonList: PropTypes.shape({
@@ -64,20 +63,25 @@ const SocialButtonList = ({ history, buttonList, auth, currentProviders }) => {
     const visible = buttonList[provder].visible;
 
     return (
-      <button
-        key={provder}
-        className={`btn__social btn--${provder} ${!visible && 'hidden'}`}
-        onClick={e => authenticate(e, provder)}
-      >
-        {provder}
-      </button>
+      <List.Item>
+        <Button
+          key={provder}
+          primary
+          color={provder}
+          circular
+          onClick={e => authenticate(e, provder)}
+          className={ (!visible) ? 'hidden' : ''}
+          icon={provder}
+        >
+        </Button>
+      </List.Item>
     );
   };
 
   return (
-    <div className="btn__social--list">
+    <List horizontal>
       {Object.keys(buttonList).map(renderButtonList)}
-    </div>
+    </List>
   );
 };
 

@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { Container, Button, Divider } from 'semantic-ui-react';
 
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import SocialProfileList from '../SocialProfileList';
 import { auth } from '../../firebase';
-
-import './Dashboard.css';
 
 class Dashboard extends Component {
   static propTypes = {
@@ -88,26 +87,31 @@ class Dashboard extends Component {
   render() {
     return (
       <Layout>
-        <h1>Secure Area</h1>
-        <SocialProfileList
-          auth={auth.getAuth}
-          providerData={this.state.providerData}
-          unlinkedProvider={this.handleUnliknedProvider}
-        />
-        <p style={{ textAlign: 'center' }}>
-          <strong>Connect Other Social Accounts</strong>
-        </p>
-        <SocialButtonList
-          buttonList={this.state.buttonList}
-          auth={auth.getAuth}
-          currentProviders={this.handleCurrentProviders}
-        />
-        <button
-          className="btn__logout"
-          onClick={() => auth.getAuth().signOut()}
-        >
-          Logout
-        </button>
+        <Container>
+          <h1>Secure Area</h1>
+          <SocialProfileList
+            auth={auth.getAuth}
+            providerData={this.state.providerData}
+            unlinkedProvider={this.handleUnliknedProvider}
+          />
+          <p style={{ textAlign: 'center' }}>
+            <strong>Connect Other Social Accounts</strong>
+          </p>
+          <SocialButtonList
+            buttonList={this.state.buttonList}
+            auth={auth.getAuth}
+            currentProviders={this.handleCurrentProviders}
+          />
+        </Container>
+        <Divider horizontal></Divider>
+        <Container>
+          <Button
+            negative
+            onClick={() => auth.getAuth().signOut()}
+          >
+            Logout
+          </Button>
+        </Container>
       </Layout>
     );
   }

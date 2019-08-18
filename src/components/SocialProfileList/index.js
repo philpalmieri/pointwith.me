@@ -1,7 +1,6 @@
 import React, { PureComponent, Fragment } from 'react';
 import PropTypes from 'prop-types';
-
-import './SocialProfileList.css';
+import { Button, Image, Item } from 'semantic-ui-react'
 
 class SocialProfileList extends PureComponent {
   static propTypes = {
@@ -29,30 +28,37 @@ class SocialProfileList extends PureComponent {
     const providerName = providerId.split('.')[0];
 
     return (
-      <div className="container__profile" key={providerName}>
-        <img
-          src={photoURL}
-          alt={providerName}
-          className="container__profile--photo"
-        />
-        <p>{providerName}</p>
-        <button
-          className="container__profile--btn"
-          onClick={e => this.handleProviderUnlink(e, providerName)}
-        >
-          Unlink
-        </button>
-      </div>
+      <Item.Group>
+        <Item key={providerName}>
+          <Item.Image
+            src={photoURL}
+            alt={providerName}
+            size='tiny'
+            circular
+          />
+          <Item.Content>
+            <Item.Header as='h1'>{providerName}</Item.Header>
+            <Item.Meta>
+              <Button
+                primary
+                onClick={e => this.handleProviderUnlink(e, providerName)}
+              >
+                Unlink
+              </Button>
+            </Item.Meta>
+          </Item.Content>
+        </Item>
+      </Item.Group>
     );
   };
 
   render() {
     return (
       <Fragment>
-        <p className="text--center">
+        <p>
           <strong>Connected Social Accounts</strong>
         </p>
-        <div className="btn__profiles--list">
+        <div>
           {this.props.providerData.map(this.renderProfileList)}
         </div>
       </Fragment>
