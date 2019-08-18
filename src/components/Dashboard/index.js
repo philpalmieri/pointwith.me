@@ -2,15 +2,18 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { 
   Button,
-  Divider,
-  Card,
   Container,
+  Divider,
+  Form,
+  Grid,
+  Header,
+  List,
 } from 'semantic-ui-react';
-
 import { db, auth } from '../../firebase';
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import SocialProfileList from '../SocialProfileList';
+const uuid = require('uuid/v1');
 
 class Dashboard extends Component {
   static propTypes = {
@@ -48,11 +51,24 @@ class Dashboard extends Component {
     pokerSessions: [
       { id: 'abc', description: 'foobar', meta: 'baz' },
     ],
+    newSessionName: '',
   };
 
   componentDidMount() {
     this.updateProviders(this.state.providerData);
     this.loadSessions();
+  }
+
+  createSession = (e) => {
+    const pRef = db.pokerSessionsRoot();
+    pRef.child(uuid())
+      .update({description: this.state.newSessionName, foo: 'bar'});
+    this.setState({newSessionName: ''});
+    this.loadSessions();
+  }
+
+  handleNewSessionName = (e) => {
+    this.setState({newSessionName: e.target.value});
   }
 
   loadSessions = async () => {
@@ -133,7 +149,34 @@ class Dashboard extends Component {
         </Container>
         <Divider horizontal></Divider>
         <Container>
-          <Card.Group items={this.state.pokerSessions} />
+          <Grid>
+            <Grid.Column width={4}>
+              <Form onSubmit={this.createSession}>
+                <Header as='h1'>Create Session</Header>
+                <Form.Field>
+                  <label>Session Title</label>
+                  <input
+                    placeholder='New Poker Session'
+                    value={this.state.newSessionName}
+                    onChange={this.handleNewSessionName}
+                  />
+                </Form.Field>
+                <Button primary type='submit'>Create Session</Button>
+              </Form>
+            </Grid.Column>
+            <Grid.Column width={12}>
+              <List divided relaxed>
+                  {this.state.pokerSessions.map((s) => (
+                    <List.Item>
+                      <List.Content>
+                        <List.Header as='a'>{s.id}</List.Header>
+                        <List.Description as='a'>{s.description}</List.Description>
+                      </List.Content>
+                    </List.Item>
+                  ))}
+              </List>
+            </Grid.Column>
+          </Grid>
         </Container>
         <Divider horizontal></Divider>
         <Container>
