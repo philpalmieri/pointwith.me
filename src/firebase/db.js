@@ -4,6 +4,9 @@ const getDb = () => {
   return firebase.database().ref();
 };
 
-export const pokerSessionsRoot = () => getDb().child('poker-sessions');
-export const pokerSessions = async () => await getDb().child('poker-sessions').orderByKey(); 
-export const pokerSession = uid => getDb().child(`poker-sessions/${uid}`);
+export const pokerTablesRoot = (userId) => 
+  getDb().child(`pokerTables/${userId}`);
+export const pokerTables = (userId) => 
+  getDb().child(`pokerTables/${userId}`).orderByKey(); 
+export const pokerTable = (userId, uid) => 
+  getDb().child(`pokerTables/${userId}/${uid}`);

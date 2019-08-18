@@ -13,7 +13,8 @@ import { db, auth } from '../../firebase';
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import SocialProfileList from '../SocialProfileList';
-const uuid = require('uuid/v1');
+//const uuid = require('uuid/v1');
+const shortid = require('shortid');
 
 class Dashboard extends Component {
   static propTypes = {
@@ -48,45 +49,49 @@ class Dashboard extends Component {
       //}
     },
     providerData: this.props.providerData,
-    pokerSessions: [
-      { id: 'abc', description: 'foobar', meta: 'baz' },
-    ],
-    newSessionName: '',
+    pokerTables: [],
+    newPokerTableName: '',
+    currentUser: {},
   };
 
+  componentWillMount() {
+    this.loadCurrentUser();
+  }
   componentDidMount() {
     this.updateProviders(this.state.providerData);
-    this.loadSessions();
+    this.loadPokerTables();
   }
 
-  createSession = (e) => {
-    const pRef = db.pokerSessionsRoot();
-    pRef.child(uuid())
-      .update({description: this.state.newSessionName, foo: 'bar'});
-    this.setState({newSessionName: ''});
-    this.loadSessions();
+  loadCurrentUser = () => {
+    const getAuth = auth.getAuth();
+    this.setState({currentUser: getAuth.currentUser});
+  }
+  createPokerTable = (e) => {
+    const pRef = db.pokerTablesRoot(this.state.currentUser.uid);
+    pRef.child(shortid.generate())
+      .update({tableName: this.state.newPokerTableName});
+    this.setState({newPokerTableName: ''});
+    this.loadPokerTables();
   }
 
-  handleNewSessionName = (e) => {
-    this.setState({newSessionName: e.target.value});
+  handleNewPokerTableName = (e) => {
+    this.setState({newPokerTableName: e.target.value});
   }
 
-  loadSessions = async () => {
-    const pokerSessionsRef = await db.pokerSessions();
-    console.log(pokerSessionsRef);
-    pokerSessionsRef.on('value', snapshot => {
-      let sessions = snapshot.val();
-      let newSessionState = [];
-      for (let session in sessions) {
-        console.log(session);
-        newSessionState.push({
-          id: session,
-          description: sessions[session].description,
+  loadPokerTables = () => {
+    const pokerTablesRef = db.pokerTables(this.state.currentUser.uid);
+    pokerTablesRef.on('value', snapshot => {
+      let pokerTables = snapshot.val();
+      let newPokerTablesState = [];
+      for (let table in pokerTables) {
+        newPokerTablesState.push({
+          id: table,
+          tableName: pokerTables[table].tableName,
           meta: '10 points'
         });
       }
       this.setState({
-        pokerSessions: newSessionState
+        pokerTables: newPokerTablesState
       });
     });
   }
@@ -151,29 +156,29 @@ class Dashboard extends Component {
         <Container>
           <Grid>
             <Grid.Column width={4}>
-              <Form onSubmit={this.createSession}>
-                <Header as='h1'>Create Session</Header>
+              <Form onSubmit={this.createPokerTable}>
+                <Header as='h1'>Create PokerTable</Header>
                 <Form.Field>
-                  <label>Session Title</label>
+                  <label>Poker Table Name</label>
                   <input
-                    placeholder='New Poker Session'
-                    value={this.state.newSessionName}
-                    onChange={this.handleNewSessionName}
+                    placeholder='New Poker Table Name'
+                    value={this.state.newPokerTableName}
+                    onChange={this.handleNewPokerTableName}
                   />
                 </Form.Field>
-                <Button primary type='submit'>Create Session</Button>
+                <Button primary type='submit'>Create Poker Table</Button>
               </Form>
             </Grid.Column>
             <Grid.Column width={12}>
               <List divided relaxed>
-                  {this.state.pokerSessions.map((s) => (
-                    <List.Item>
-                      <List.Content>
-                        <List.Header as='a'>{s.id}</List.Header>
-                        <List.Description as='a'>{s.description}</List.Description>
-                      </List.Content>
-                    </List.Item>
-                  ))}
+                {this.state.pokerTables.map((s) => (
+                  <List.Item>
+                    <List.Content>
+                      <List.Header as='a'>{s.tableName}</List.Header>
+                      <List.Description as='a'>Table Id: {s.id}</List.Description>
+                    </List.Content>
+                  </List.Item>
+                ))}
               </List>
             </Grid.Column>
           </Grid>
