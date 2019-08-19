@@ -13,9 +13,6 @@ export default WrappedComponent => {
       auth.getAuth().onAuthStateChanged(user => {
         if (user) {
           this.setState({ providerData: user.providerData });
-        } else {
-          console.info('Must be authenticated');
-          this.props.history.push('/');
         }
       });
     }

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import { auth } from '../../firebase';
+import { Segment } from 'semantic-ui-react';
 
 const buttonList = {
   github: {
@@ -33,17 +34,21 @@ class Login extends Component {
     auth.getAuth().onAuthStateChanged(user => {
       if (user) {
         this.props.history.push('/dashboard');
-      }
+      } else {
+        this.props.history.push('/');
+      }  
     });
   }
 
   render() {
     return (
-      <Layout contentCenter={true}>
+     <Layout>
+      <Segment relaxed>
         <p>Connect With</p>
         <SocialButtonList buttonList={buttonList} auth={auth.getAuth} />
         <Link to="/about"></Link>
-      </Layout>
+      </Segment>
+     </Layout>
     );
   }
 }

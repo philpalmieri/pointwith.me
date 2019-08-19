@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import * as moment from 'moment'
 import { 
   Button,
@@ -86,13 +87,15 @@ class Dashboard extends Component {
               <List divided relaxed>
                 {this.state.pokerTables.map((s) => (
                   <List.Item key={s.id}>
-                    <List.Content as='a'>
-                      <List.Header>{s.tableName}</List.Header>
-                      <List.Description>Table ID: {s.id}</List.Description>
-                      <List.Description>
-                          Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
-                      </List.Description>
-                    </List.Content>
+                    <Link to={`/table/${this.state.currentUser.uid}/${s.id}`}>
+                      <List.Content>
+                        <List.Header>{s.tableName}</List.Header>
+                        <List.Description>Table ID: {s.id}</List.Description>
+                        <List.Description>
+                            Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+                        </List.Description>
+                      </List.Content>
+                    </Link>
                   </List.Item>
                 ))}
               </List>
