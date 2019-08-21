@@ -13,6 +13,8 @@ export default WrappedComponent => {
       auth.getAuth().onAuthStateChanged(user => {
         if (user) {
           this.setState({ providerData: user.providerData });
+        } else {
+          this.props.history.push('/');
         }
       });
     }

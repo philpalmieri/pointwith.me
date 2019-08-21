@@ -97,7 +97,7 @@ class PokerTable extends Component {
               <Header as='h1'>Table Issues</Header>
               <List divided relaxed>
                 {this.state.issues.map((s) => (
-                  <List.Item key={s.id} onClick={() => this.handleViewIssue(s)}>
+                  <List.Item key={s.id} onClick={() => this.handleViewIssue(s.id)}>
                     <List.Content>
                       <List.Header>{s.title}</List.Header>
                       <List.Description>
@@ -112,7 +112,7 @@ class PokerTable extends Component {
               </List>
             </Segment>
           </Container>
-          <Modal open={(this.state.currentIssue)} centered={false}>
+          <Modal open={(this.state.currentIssue) ? true : false} centered={false}>
             <Modal.Content>
               <Issue
                 issue={this.state.currentIssue}

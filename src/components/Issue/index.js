@@ -1,70 +1,168 @@
 import React, {Component} from 'react';
 import * as moment from 'moment'
 import { 
-  Button,
+  Card,
   Container,
+  Grid,
   Header,
   Icon,
-  List,
   Segment,
 } from 'semantic-ui-react';
 import { db, auth } from '../../firebase';
+import './issue.css';
+
+const availablePoints = [0,1,2,3,5,8,13,21,34,68];
 
 class Issue extends Component {
   state = {
     ownerId: this.props.ownerId,
     tableId: this.props.tableId,
     currentUser: auth.getAuth().currentUser,
-    currentIssue: this.props.issue,
+    currentIssueId: this.props.issue,
+    title: '',
     votes: [],
     isLocked: false,
-    votingEnabled: false,
-    userIsVoting: false,
-    userVote: 0,
+    showVotes: false,
+    userVote: null
   };
 
   componentDidMount() {
-    //this.loadVotesTable();
+    this.issueRef = db.pokerTableIssue(
+      this.state.ownerId,
+      this.state.tableId,
+      this.state.currentIssueId
+    );
+    this.loadIssue();
   }
 
-  //handleCreateIssue = (e) => {
-    //const ptRef = db.pokerTableIssuesRoot(this.state.currentUser.uid, this.state.tableId);
-    //ptRef.child(shortid.generate())
-      //.update({
-        //title: this.state.newIssueName,
-        //created: new Date(),
-        //score: 0,
-        //votes: {}
-      //});
-  //}
+  loadIssue() {
+    this.issueRef.on('value', snapshot => {
+      const newVotesList = [];
+      const issue = snapshot.val();
+      const votes = issue.votes || {};
+      for (let vote in votes) {
+        newVotesList.push({
+          ...issue.votes[vote],
+          userId: vote,
+        });
+      }
+      newVotesList.sort( (v1, v2) => {
+        if(v1.vote > v2.vote) return 1;
+        if(v2.vote > v1.vote) return -1;
+        return 0;
+      });
+      
+      const myVote = 
+        newVotesList.find( v => v.userId === this.state.currentUser.uid);
+           
+      this.setState({
+        userVote: (myVote) ? myVote.vote : null,
+        title: issue.title,
+        votes: newVotesList,
+        isLocked: issue.isLocked || false,
+        showVotes: issue.showVotes || false,
+      });
+    });
+  }
 
-  //loadPokerTable = () => {
-    //const pokerTableRef = db.pokerTable(this.state.ownerId, this.state.tableId);
-    //pokerTableRef.on('value', snapshot => {
-      //const table = snapshot.val();
-      //const newIssuesList = [];
-      //for (let issue in table.issues) {
-        //newIssuesList.push({
-          //...table.issues[issue],
-          //id: issue,
-        //});
-      //}
-      //this.setState({
-        //pokerTable: table,
-        //issues: newIssuesList, 
-      //});
-    //});
-  //}
+  handleSelectVote(userVote) {
+    if(userVote === this.state.userVote) {
+      userVote = null;
+    }
+    this.setState({userVote});
+    this.issueRef.child(`votes/${this.state.currentUser.uid}`)
+      .update({vote: userVote});
+  }
+
+  handleShow() {
+    this.issueRef.child('showVotes').set(!this.state.showVotes);
+  }
+
+  handleLock() { 
+    this.issueRef.child('isLocked').set(!this.state.isLocked);
+  }
+
+  votingBlock() {
+    if(this.state.isLocked) {
+      return;
+    }
+    return(
+      <Segment raised textAlign='center'>
+        <Card.Group
+          itemsPerRow={2}
+          id="voteCards"
+          className={(this.state.isLocked) ? 'locked' : 'unlocked'}
+        >
+          {availablePoints.map( p => (
+            <Card
+              key={p}
+              onClick={() => this.handleSelectVote(p)}
+              color='blue'
+              className={(this.state.userVote === p) ? 'selected' : ''}>
+              {p}
+            </Card>
+          ))}
+        </Card.Group>
+      </Segment>
+    );
+  }
+
+  suggestion() {
+    let suggestion = '??';
+    if(this.state.showVotes) {
+      const total = this.state.votes.reduce((t, v) => t + v.vote, 0);
+      const suggestionAvg = (total / this.state.votes.length);
+      suggestion = availablePoints.find( p => p > suggestionAvg);
+    }
+    return(
+      <Header sub>Average: {suggestion} pts</Header>
+    );
+  }
+
+  controls() {
+    if(this.state.ownerId !== this.state.currentUser.uid) {
+      return;
+    }
+
+    return(
+      <Grid.Column floated='right' textAlign='right' width={5}>
+        <Icon
+          name={(this.state.showVotes) ? 'eye slash' : 'eye'}
+          size='large'
+          onClick={()=>this.handleShow()}/>
+        <Icon
+          name={(this.state.isLocked) ? 'unlock' : 'lock'}
+          size='large'
+          onClick={()=>this.handleLock()}/>
+      </Grid.Column>      
+    );
+  }
 
   render() {
     return (
-      <Container>
-        <Header as='h1'>Voting On: {this.state.currentIssue.title}</Header>
-        <Segment raised>
-          Your Vote 
-        </Segment>
+      <Container textAlign='center' id="issue">
+        <Header as='h1'>{this.state.title}</Header>
+        {this.votingBlock()}
         <Segment stacked>
-         The Votes
+          <Grid>
+            <Grid.Column floated='left' width={8}>
+              <Header as='h1' textAlign='left'>
+                Votes
+                {this.suggestion()}
+              </Header>
+            </Grid.Column>
+            {this.controls()}
+          </Grid>
+            <Card.Group
+              itemsPerRow={4}
+              id="voteCards"
+            >
+              {this.state.votes.map((v) => (
+                <Card color='blue' key={v.userId}>
+                  {(this.state.showVotes) ? v.vote : '?'}
+                </Card>
+              ))}
+            </Card.Group>
         </Segment>
         </Container>
     );

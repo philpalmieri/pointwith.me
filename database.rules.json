@@ -1,10 +1,23 @@
-{
-  "rules": {
-    "pokerTables": {
-       "$uid": {
-         ".read": true,
-         ".write": "$uid === auth.uid"
-       }
-     }
+   {
+     "rules": {
+       "pokerTables": {
+          "$uid": {
+            ".read": true,
+            ".write": true,
+            "tableName": {
+	            ".write": "$uid === auth.uid"
+            },
+            "currentIssue": {
+	            ".write": "$uid === auth.uid"
+            },
+            "issues": {
+              "$iid": {
+                "votes": {
+                  ".write": true
+                }
+              }
+            }
+          }
+        }
+      }
    }
-}
