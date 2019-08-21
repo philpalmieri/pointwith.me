@@ -49,6 +49,9 @@ class PokerTable extends Component {
   }
 
   handleViewIssue = (currentIssue) => {
+    if(this.state.ownerId !== this.state.currentUser.uid) {
+      return;
+    }
     this.pokerTableRef.update({currentIssue});
   }
 
@@ -80,51 +83,74 @@ class PokerTable extends Component {
     });
   }
 
+  showIssueCreator() {
+    if(this.state.ownerId !== this.state.currentUser.uid) {
+      return(
+        <div>
+          <Header as='h1'>{this.state.pokerTable.tableName}</Header>
+          <Header sub
+            as='a'
+            onClick={() => this.props.history.push('/dashboard')}
+          >
+            <Icon name='home' />
+              Return to Lobby
+          </Header>
+        </div>
+      );
+    }
+    return(
+      <Form onSubmit={this.handleCreateIssue}>
+        <Header as='h1'>{this.state.pokerTable.tableName}</Header>
+        <Header sub
+          as='a'
+          onClick={() => this.props.history.push('/dashboard')}
+        >
+          <Icon name='home' />
+            Return to Lobby
+        </Header>
+        <p>Copy this table's URL to share with your team for a pointing session</p>
+        <Header as='h2'>Create Issue</Header>
+          <Form.Field>
+            <label>Open Issues</label>
+            <input
+              placeholder='New Issue Name'
+              value={this.state.newIssueName}
+              onChange={this.handleNewIssueName}
+            />
+          </Form.Field>
+          <Button primary type='submit'>Create Issue</Button>
+      </Form>
+    );
+  }
+
   render() {
     return (
       <Layout>
         <Container>
           <Segment raised>
-            <Form onSubmit={this.handleCreateIssue}>
-              <Header as='h1'>{this.state.pokerTable.tableName}</Header>
-              <Header sub
-                as='a'
-                onClick={() => this.props.history.push('/dashboard')}
-              >
-                <Icon name='home' />
-                  Return to Lobby
-              </Header>
-              <p>Copy this table's URL to share with your team for a pointing session</p>
-              <Header as='h2'>Create Issue</Header>
-                <Form.Field>
-                  <label>Open Issues</label>
-                  <input
-                    placeholder='New Issue Name'
-                    value={this.state.newIssueName}
-                    onChange={this.handleNewIssueName}
-                  />
-                </Form.Field>
-                <Button primary type='submit'>Create Issue</Button>
-              </Form>
-            </Segment>
-            <Segment stacked>
-              <Header as='h1'>Table Issues</Header>
-              <List divided relaxed>
-                {this.state.issues.map((s) => (
-                  <List.Item
-                    className="issueLink"
-                    key={s.id}
-                    onClick={() => this.handleViewIssue(s.id)}>
-                    <List.Content>
-                      <List.Header>{s.title}</List.Header>
-                      <List.Description>
-                          Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
-                      </List.Description>
-                    </List.Content>
-                  </List.Item>
-                ))}
-              </List>
-            </Segment>
+            {this.showIssueCreator()}
+          </Segment>
+          <Segment stacked>
+            <Header as='h1'>Table Issues</Header>
+            <List divided relaxed>
+              {this.state.issues.map((s) => (
+                <List.Item
+                  className="issueLink"
+                  key={s.id}
+                  onClick={() => this.handleViewIssue(s.id)}>
+                  <List.Content>
+                    <List.Header>
+                      <Icon name={(s.isLocked) ? 'lock' : 'unlock'}/>
+                      {s.title}
+                    </List.Header>
+                    <List.Description>
+                        Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+                    </List.Description>
+                  </List.Content>
+                </List.Item>
+              ))}
+            </List>
+          </Segment>
           </Container>
           <Modal open={(this.state.currentIssue) ? true : false} centered={false}>
             <Modal.Content>

@@ -23,7 +23,7 @@ body {
   
 }
 #loginButtons button {
-  min-width: 100px;
+  /*min-width: 100px;*/
 }
 main {
   padding-top: 5em;
@@ -36,4 +36,16 @@ footer {
 }
 .hidden {
  display: none !important; 
+}
+
+/* Mobile Overrides */
+@media (max-width: 500px) {
+  #topBranding {
+    font-size: 1.1em;
+  }
+  #loginButtons button {
+    display: block;
+    margin: .5rem auto;
+    width: 80%;
+  }
 }

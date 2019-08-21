@@ -17,7 +17,7 @@ const Layout = ({ children, contentCenter }) => {
       <Menu fixed='top' inverted>
         <Container text id="topBranding">
           <Image size='mini' src='/favicon-32x32.png' style={{ marginRight: '1.5em' }} />
-          <p>PointWith.me: Planning Poker for Remote Teams!</p>
+          <p>Planning Poker for Remote Teams!</p>
         </Container>
       </Menu>
       <main className={contentCenter ? 'content-center' : ''}>{children}</main>
