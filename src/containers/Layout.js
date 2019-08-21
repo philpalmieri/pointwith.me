@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Container, Image, Menu } from 'semantic-ui-react'
+import { Container, Icon, Image, Menu } from 'semantic-ui-react'
 
 const propTypes = {
   children: PropTypes.node.isRequired,
@@ -24,7 +24,9 @@ const Layout = ({ children, contentCenter }) => {
       <Container>
         <footer>
           <p>
-            <a href="https://twitter.com/philpalmieri">&copy; 2019 Phillip Palmieri</a>
+            <a href="https://twitter.com/pointwithme">
+              <Icon name='twitter' />
+              &copy; 2019 PointWith.me</a>
           </p>
         </footer>
       </Container>
