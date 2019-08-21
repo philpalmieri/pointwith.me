@@ -19,6 +19,14 @@ const buttonList = {
     visible: true,
     provider: () => auth.googleOAuth()
   },
+  microsoft: {
+    visible: true,
+    provider: () => auth.azureOAuth()
+  },
+  anonymous: {
+    visible: false,
+    provider: () => auth.anonymousOAuth()
+  },
   //twitter: {
     //visible: true,
     //provider: () => auth.twitterOAuth()

@@ -23,7 +23,7 @@ body {
   
 }
 #loginButtons button {
-  min-width: 150px;
+  min-width: 100px;
 }
 main {
   padding-top: 5em;

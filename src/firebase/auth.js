@@ -19,3 +19,11 @@ export const facebookOAuth = () => {
 export const googleOAuth = () => {
   return new firebase.firebase_.auth.GoogleAuthProvider();
 };
+
+export const azureOAuth = () => {
+  return new firebase.firebase_.auth.OAuthProvider('microsoft.com');
+};
+
+export const anonymousOAuth = () => {
+  return new firebase.firebase_.auth.signInAnonymously();
+};
