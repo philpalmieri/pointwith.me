@@ -12,6 +12,10 @@ export const pokerTables = (userId) =>
 export const pokerTable = (userId, uid) => 
   getDb().child(`pokerTables/${userId}/${uid}`);
 
+//Votes
+export const votesRoot = (tid) => 
+  getDb().child(`votes/${tid}`);
+
 //Issues
 export const pokerTableIssuesRoot = (userId, tid) => 
   getDb().child(`pokerTables/${userId}/${tid}/issues`);

@@ -32,17 +32,32 @@ class Issue extends Component {
       this.state.tableId,
       this.state.currentIssueId
     );
+    this.votesRef = db.votesRoot(
+      this.state.tableId
+    );
     this.loadIssue();
+    this.loadVotes();
   }
 
   loadIssue() {
     this.issueRef.on('value', snapshot => {
-      const newVotesList = [];
       const issue = snapshot.val();
-      const votes = issue.votes || {};
+           
+      this.setState({
+        title: issue.title,
+        isLocked: issue.isLocked || false,
+        showVotes: issue.showVotes || false,
+      });
+    });
+  }
+
+  loadVotes() {
+    this.votesRef.on('value', snapshot => {
+      const newVotesList = [];
+      const votes = snapshot.val() || {};
       for (let vote in votes) {
         newVotesList.push({
-          ...issue.votes[vote],
+          ...votes[vote],
           userId: vote,
         });
       }
@@ -54,23 +69,20 @@ class Issue extends Component {
       
       const myVote = 
         newVotesList.find( v => v.userId === this.state.currentUser.uid);
-           
+
       this.setState({
         userVote: (myVote) ? myVote.vote : null,
-        title: issue.title,
         votes: newVotesList,
-        isLocked: issue.isLocked || false,
-        showVotes: issue.showVotes || false,
       });
     });
   }
-
+  
   handleSelectVote(userVote) {
     if(userVote === this.state.userVote) {
       userVote = null;
     }
     this.setState({userVote});
-    this.issueRef.child(`votes/${this.state.currentUser.uid}`)
+    this.votesRef.child(this.state.currentUser.uid)
       .update({vote: userVote});
   }
 
