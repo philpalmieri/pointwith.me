@@ -12,7 +12,7 @@ import {
 } from 'semantic-ui-react';
 import { db, auth } from '../../firebase';
 import Layout from '../../containers/Layout';
-
+import Issue from '../Issue';
 //const uuid = require('uuid/v1');
 const shortid = require('shortid');
 
@@ -24,17 +24,17 @@ class PokerTable extends Component {
     newIssueName: '',
     pokerTable: {},
     issues: [],
-    issueModal: false,
-    currentIssue: {}
+    currentIssue: false,
   };
 
   componentDidMount() {
+    this.pokerTableRef = db.pokerTable(this.state.ownerId, this.state.tableId);
+    this.ptIssuesRef = db.pokerTableIssuesRoot(this.state.currentUser.uid, this.state.tableId);
     this.loadPokerTable();
   }
 
   handleCreateIssue = (e) => {
-    const ptRef = db.pokerTableIssuesRoot(this.state.currentUser.uid, this.state.tableId);
-    ptRef.child(shortid.generate())
+    this.ptIssuesRef.child(shortid.generate())
       .update({
         title: this.state.newIssueName,
         created: new Date(),
@@ -47,17 +47,16 @@ class PokerTable extends Component {
     this.setState({newIssueName: e.target.value});
   }
 
-  handleViewIssue = (issue) => {
-    this.setState({issueModal: true});
+  handleViewIssue = (currentIssue) => {
+    this.pokerTableRef.update({currentIssue});
   }
 
   handleCloseIssue = () => {
-    this.setState({issueModal: false});
+    this.pokerTableRef.update({currentIssue: false});
   }
 
   loadPokerTable = () => {
-    const pokerTableRef = db.pokerTable(this.state.ownerId, this.state.tableId);
-    pokerTableRef.on('value', snapshot => {
+    this.pokerTableRef.on('value', snapshot => {
       const table = snapshot.val();
       const newIssuesList = [];
       for (let issue in table.issues) {
@@ -68,7 +67,9 @@ class PokerTable extends Component {
       }
       this.setState({
         pokerTable: table,
-        issues: newIssuesList, 
+        issues: newIssuesList,
+        issueModal: table.issueModal || false,
+        currentIssue: table.currentIssue || false
       });
     });
   }
@@ -96,7 +97,7 @@ class PokerTable extends Component {
               <Header as='h1'>Table Issues</Header>
               <List divided relaxed>
                 {this.state.issues.map((s) => (
-                  <List.Item key={s.id} onClick={() => this.handleViewIssue(s.id)}>
+                  <List.Item key={s.id} onClick={() => this.handleViewIssue(s)}>
                     <List.Content>
                       <List.Header>{s.title}</List.Header>
                       <List.Description>
@@ -111,8 +112,14 @@ class PokerTable extends Component {
               </List>
             </Segment>
           </Container>
-          <Modal open={this.state.issueModal} centered={false}>
-            <Modal.Content>Yo!</Modal.Content>
+          <Modal open={(this.state.currentIssue)} centered={false}>
+            <Modal.Content>
+              <Issue
+                issue={this.state.currentIssue}
+                ownerId={this.state.ownerId}
+                tableId={this.state.tableId}
+              />
+            </Modal.Content>
             <Modal.Actions>
               <Button color='red' onClick={() => this.handleCloseIssue() } inverted>
                 <Icon name='close' /> Close
