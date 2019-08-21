@@ -19,6 +19,9 @@ body {
   font-family: Lato;
   font-weight: 700;
 }
+#loginPage {
+  
+}
 #loginButtons button {
   min-width: 150px;
 }

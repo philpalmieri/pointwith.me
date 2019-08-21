@@ -43,13 +43,13 @@ class Login extends Component {
   render() {
     return (
       <Layout>
-        <Grid textAlign='center' style={{ height: '100vh' }} verticalAlign='middle'>
+        <Grid textAlign='center' style={{ height: '80vh' }} verticalAlign='middle'>
           <Grid.Column style={{ maxWidth: 450 }}>
-            <Segment relaxed>
+            <Segment>
               <Header as='h2'>What is it?</Header>
               <p>PointWith.me is a way for remote teams to story point quickly and easily. Someone 'Drives' your session and all the players open the link on their phone/desktop and just point issues as they cycle through</p>
             </Segment>
-            <Segment relaxed>
+            <Segment>
               <Header as='h1'>Sign Up/In - It's FREE</Header>
               <Header sub>
                   Login with a social account, we dont use/store anything other
