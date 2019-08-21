@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import * as moment from 'moment'
 import { 
+  Button,
   Card,
   Container,
   Grid,
@@ -23,7 +24,8 @@ class Issue extends Component {
     votes: [],
     isLocked: false,
     showVotes: false,
-    userVote: null
+    userVote: null,
+    mostVotes: null,
   };
 
   componentDidMount() {
@@ -66,13 +68,27 @@ class Issue extends Component {
         if(v2.vote > v1.vote) return -1;
         return 0;
       });
+
+      //Get most votes
+      const calcMostVotes = newVotesList.reduce((acc, curr) => { 
+        if (curr.vote in acc) {
+            acc[curr.vote]++;
+        } else {
+            acc[curr.vote] = 1;
+        }
+        return acc;
+      }, {});
       
+      const topVote = Object.keys(calcMostVotes)[0] || -1;
+      const mostVotes =
+        (topVote > -1 && calcMostVotes[topVote] > 1) ? calcMostVotes[topVote] : -1;
       const myVote = 
         newVotesList.find( v => v.userId === this.state.currentUser.uid);
 
       this.setState({
         userVote: (myVote) ? myVote.vote : null,
         votes: newVotesList,
+        mostVotes 
       });
     });
   }
@@ -121,13 +137,15 @@ class Issue extends Component {
 
   suggestion() {
     let suggestion = '??';
+    let mode = '??';
     if(this.state.showVotes) {
       const total = this.state.votes.reduce((t, v) => t + v.vote, 0);
       const suggestionAvg = (total / this.state.votes.length);
       suggestion = availablePoints.find( p => p >= suggestionAvg);
+      mode = (this.state.mostVotes > -1) ? this.state.mostVotes : '--';
     }
     return(
-      <Header sub>Average: {suggestion} pts</Header>
+      <Header sub>Mode/Mean ({mode}/{suggestion})</Header>
     );
   }
 
@@ -137,16 +155,30 @@ class Issue extends Component {
     }
 
     return(
-      <Grid.Column floated='right' textAlign='right' width={5}>
-        <Icon
-          name={(this.state.showVotes) ? 'eye slash' : 'eye'}
-          size='large'
-          onClick={()=>this.handleShow()}/>
-        <Icon
-          name={(this.state.isLocked) ? 'unlock' : 'lock'}
-          size='large'
-          onClick={()=>this.handleLock()}/>
-      </Grid.Column>      
+      <Grid.Column id='voteControls' floated='right' textAlign='right' width={8}>
+        <Button
+          positive
+          toggle
+          active={this.state.showVotes}
+          onClick={() => this.handleShow()}
+        >
+          <Icon
+            name={(this.state.showVotes) ? 'eye slash' : 'eye'}
+            size='large'/>
+            { ( () => (this.state.showVotes) ? 'Hide' : 'Show' )()} Votes
+        </Button>
+        <Button
+          negative
+          toggle
+          active={this.state.isLocked}
+          onClick={() => this.handleLock()}
+        >
+          <Icon
+            name={(this.state.isLocked) ? 'unlock' : 'lock'}
+            size='large' />
+            { ( () => (this.state.isLocked) ? 'Unlock' : 'Lock' )()} Voting
+        </Button>
+      </Grid.Column>
     );
   }
 
@@ -154,10 +186,9 @@ class Issue extends Component {
     return (
       <Container textAlign='center' id="issue">
         <Header as='h1'>{this.state.title}</Header>
-        {this.votingBlock()}
         <Segment stacked>
           <Grid>
-            <Grid.Column floated='left' width={8}>
+            <Grid.Column floated='left' width={6}>
               <Header as='h1' textAlign='left'>
                 Votes
                 {this.suggestion()}
@@ -170,12 +201,15 @@ class Issue extends Component {
               id="voteCards"
             >
               {this.state.votes.map((v) => (
-                <Card color='blue' key={v.userId}>
+                <Card color='blue'
+                  className={(this.state.mostVotes == v.vote) ? 'mode' : ''}
+                  key={v.userId}>
                   {(this.state.showVotes) ? v.vote : '?'}
                 </Card>
               ))}
             </Card.Group>
         </Segment>
+        {this.votingBlock()}
         </Container>
     );
   }

@@ -19,11 +19,17 @@ body {
   font-family: Lato;
   font-weight: 700;
 }
-#loginPage {
-  
+#voteControls a{
+  margin-left: 1em;
+  color: #000;
+  font-size: 1em;
+  cursor: pointer;
 }
-#loginButtons button {
-  /*min-width: 100px;*/
+#voteControls a:last-child{
+  margin-left: 2em;
+}
+#voteCards .mode {
+  background-color: #21ba45;
 }
 main {
   padding-top: 5em;

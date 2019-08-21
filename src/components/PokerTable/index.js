@@ -83,6 +83,18 @@ class PokerTable extends Component {
     });
   }
 
+  showModalActions() {
+    if(this.state.ownerId !== this.state.currentUser.uid) {
+      return;
+    }
+    return(
+      <Modal.Actions>
+        <Button color='red' onClick={() => this.handleCloseIssue() } inverted>
+          <Icon name='close' /> Close
+        </Button>
+      </Modal.Actions>
+    );
+  }
   showIssueCreator() {
     if(this.state.ownerId !== this.state.currentUser.uid) {
       return(
@@ -160,11 +172,7 @@ class PokerTable extends Component {
                 tableId={this.state.tableId}
               />
             </Modal.Content>
-            <Modal.Actions>
-              <Button color='red' onClick={() => this.handleCloseIssue() } inverted>
-                <Icon name='close' /> Close
-              </Button>
-            </Modal.Actions>
+            {this.showModalActions()}
           </Modal>
       </Layout>
     );
