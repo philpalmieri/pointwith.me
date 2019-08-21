@@ -41,6 +41,7 @@ class PokerTable extends Component {
         score: 0,
         votes: {}
       });
+    this.setState({newIssueName: ''});
   }
 
   handleNewIssueName = (e) => {
@@ -65,6 +66,11 @@ class PokerTable extends Component {
           id: issue,
         });
       }
+      newIssuesList.sort( (i1,i2) => {
+        if(i1.created > i2.created) return 1;
+        if(i2.created > i1.created) return -1;
+        return 0;
+      });
       this.setState({
         pokerTable: table,
         issues: newIssuesList,
@@ -78,12 +84,20 @@ class PokerTable extends Component {
     return (
       <Layout>
         <Container>
-          <Header as='h1'>Viewing Poker Table {this.state.pokerTable.tableName}</Header>
           <Segment raised>
             <Form onSubmit={this.handleCreateIssue}>
-              <Header as='h1'>Create Issue</Header>
+              <Header as='h1'>{this.state.pokerTable.tableName}</Header>
+              <Header sub
+                as='a'
+                onClick={() => this.props.history.push('/dashboard')}
+              >
+                <Icon name='home' />
+                  Return to Lobby
+              </Header>
+              <p>Copy this table's URL to share with your team for a pointing session</p>
+              <Header as='h2'>Create Issue</Header>
                 <Form.Field>
-                  <label>Issue Name</label>
+                  <label>Open Issues</label>
                   <input
                     placeholder='New Issue Name'
                     value={this.state.newIssueName}
@@ -97,14 +111,14 @@ class PokerTable extends Component {
               <Header as='h1'>Table Issues</Header>
               <List divided relaxed>
                 {this.state.issues.map((s) => (
-                  <List.Item key={s.id} onClick={() => this.handleViewIssue(s.id)}>
+                  <List.Item
+                    className="issueLink"
+                    key={s.id}
+                    onClick={() => this.handleViewIssue(s.id)}>
                     <List.Content>
                       <List.Header>{s.title}</List.Header>
                       <List.Description>
                           Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
-                      </List.Description>
-                      <List.Description>
-                          Score: {s.score}
                       </List.Description>
                     </List.Content>
                   </List.Item>

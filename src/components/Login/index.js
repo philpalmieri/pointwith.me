@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import { auth } from '../../firebase';
-import { Segment } from 'semantic-ui-react';
+import { Divider, Grid, Header, Segment } from 'semantic-ui-react';
 
 const buttonList = {
   github: {
@@ -42,12 +42,25 @@ class Login extends Component {
 
   render() {
     return (
-     <Layout>
-      <Segment relaxed>
-        <p>Connect With</p>
-        <SocialButtonList buttonList={buttonList} auth={auth.getAuth} />
-        <Link to="/about"></Link>
-      </Segment>
+      <Layout>
+        <Grid textAlign='center' style={{ height: '100vh' }} verticalAlign='middle'>
+          <Grid.Column style={{ maxWidth: 450 }}>
+            <Segment relaxed>
+              <Header as='h2'>What is it?</Header>
+              <p>PointWith.me is a way for remote teams to story point quickly and easily. Someone 'Drives' your session and all the players open the link on their phone/desktop and just point issues as they cycle through</p>
+            </Segment>
+            <Segment relaxed>
+              <Header as='h1'>Sign Up/In - It's FREE</Header>
+              <Header sub>
+                  Login with a social account, we dont use/store anything other
+                  than your account ID for OAuth
+              </Header>
+              <Divider horizontal />
+              <SocialButtonList buttonList={buttonList} auth={auth.getAuth} />
+              <Link to="/about"></Link>
+            </Segment>
+          </Grid.Column>
+        </Grid>
      </Layout>
     );
   }

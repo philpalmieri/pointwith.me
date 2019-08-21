@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Container } from 'semantic-ui-react'
+import { Container, Image, Menu } from 'semantic-ui-react'
 
 const propTypes = {
   children: PropTypes.node.isRequired,
@@ -13,15 +13,18 @@ const defaultProps = {
 
 const Layout = ({ children, contentCenter }) => {
   return (
-    <Container text style={{ marginTim: '7em' }}>
-      <header>
-        <h1>PointWith.me: Planning Poker for Remote Teams!</h1>
-      </header>
+    <Container text style={{ marginTim: '1em' }}>
+      <Menu fixed='top' inverted>
+        <Container text id="topBranding">
+          <Image size='mini' src='/favicon-32x32.png' style={{ marginRight: '1.5em' }} />
+          <p>PointWith.me: Planning Poker for Remote Teams!</p>
+        </Container>
+      </Menu>
       <main className={contentCenter ? 'content-center' : ''}>{children}</main>
       <Container>
         <footer>
           <p>
-            &copy; 2019 Phillip Palmieri
+            <a href="https://twitter.com/philpalmieri">&copy; 2019 Phillip Palmieri</a>
           </p>
         </footer>
       </Container>

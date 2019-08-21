@@ -112,7 +112,7 @@ class Issue extends Component {
     if(this.state.showVotes) {
       const total = this.state.votes.reduce((t, v) => t + v.vote, 0);
       const suggestionAvg = (total / this.state.votes.length);
-      suggestion = availablePoints.find( p => p > suggestionAvg);
+      suggestion = availablePoints.find( p => p >= suggestionAvg);
     }
     return(
       <Header sub>Average: {suggestion} pts</Header>
