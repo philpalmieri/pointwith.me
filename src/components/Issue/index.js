@@ -37,7 +37,7 @@ class Issue extends Component {
       this.state.currentIssueId
     );
     this.votesRef = db.votesRoot(
-      this.state.tableId
+      this.state.currentIssueId
     );
     this.loadIssue();
     this.loadVotes();
