@@ -31,6 +31,9 @@ body {
 #voteCards .mode {
   background-color: #21ba45;
 }
+#modalControl {
+  text-align: center;
+}
 main {
   padding-top: 5em;
 }

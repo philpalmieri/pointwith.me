@@ -7,6 +7,7 @@ import {
   Grid,
   Header,
   Icon,
+  Loader,
   Segment,
 } from 'semantic-ui-react';
 import { db, auth } from '../../firebase';
@@ -26,6 +27,7 @@ class Issue extends Component {
     showVotes: false,
     userVote: null,
     mostVotes: null,
+    isLoaded: false,
   };
 
   componentDidMount() {
@@ -49,6 +51,7 @@ class Issue extends Component {
         title: issue.title,
         isLocked: issue.isLocked || false,
         showVotes: issue.showVotes || false,
+        isLoaded: true,
       });
     });
   }
@@ -183,6 +186,10 @@ class Issue extends Component {
   }
 
   render() {
+    if(!this.state.isLoaded) {
+        return(<Loader size='large'>Loading</Loader>);
+    }
+
     return (
       <Container textAlign='center' id="issue">
         <Header as='h1'>{this.state.title}</Header>

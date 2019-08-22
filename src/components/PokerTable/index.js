@@ -25,6 +25,7 @@ class PokerTable extends Component {
     pokerTable: {},
     issues: [],
     currentIssue: false,
+    nextIssue: false,
   };
 
   componentDidMount() {
@@ -48,15 +49,28 @@ class PokerTable extends Component {
     this.setState({newIssueName: e.target.value});
   }
 
-  handleViewIssue = (currentIssue) => {
+  handleViewIssue = async (currentIssue) => {
+    await this.pokerTableRef.update({currentIssue: false});
     if(this.state.ownerId !== this.state.currentUser.uid) {
       return;
     }
     this.pokerTableRef.update({currentIssue});
   }
+    
+  
+  getNextIssue = (currentIssue, issuesList) => {
+    let nextIssue = false;
+    issuesList.forEach( (issue, i) => {
+      if(issue.id == currentIssue) {
+        nextIssue = issuesList[i+1];
+      }
+    });
 
-  handleCloseIssue = () => {
-    this.pokerTableRef.update({currentIssue: false});
+    return (nextIssue) ? nextIssue.id : false;
+  }
+
+  handleCloseIssue = async () => {
+    return await this.pokerTableRef.update({currentIssue: false});
   }
 
   loadPokerTable = () => {
@@ -74,11 +88,14 @@ class PokerTable extends Component {
         if(i2.created > i1.created) return -1;
         return 0;
       });
+
+      const nextIssue = this.getNextIssue(table.currentIssue, newIssuesList);
       this.setState({
         pokerTable: table,
         issues: newIssuesList,
         issueModal: table.issueModal || false,
-        currentIssue: table.currentIssue || false
+        currentIssue: table.currentIssue || false,
+        nextIssue
       });
     });
   }
@@ -88,10 +105,20 @@ class PokerTable extends Component {
       return;
     }
     return(
-      <Modal.Actions>
-        <Button color='red' onClick={() => this.handleCloseIssue() } inverted>
-          <Icon name='close' /> Close
-        </Button>
+      <Modal.Actions id="modalControl">
+        <Button.Group>
+          <Button color='red' onClick={() => this.handleCloseIssue() }>
+            <Icon name='close' /> Close
+          </Button>
+          <Button.Or />
+          <Button
+            color='green'
+            onClick={() => this.handleViewIssue(this.state.nextIssue)}
+            disabled={(this.state.nextIssue) ? false : true}
+          >
+            <Icon name='chevron right' /> Next
+          </Button>
+        </Button.Group>
       </Modal.Actions>
     );
   }
