@@ -84,10 +84,9 @@ class Issue extends Component {
       
       const topVote = Object.keys(calcMostVotes)[0] || -1;
       const mostVotes =
-        (topVote > -1 && calcMostVotes[topVote] > 1) ? calcMostVotes[topVote] : -1;
+        (topVote > -1 && calcMostVotes[topVote] > 1) ? topVote : -1;
       const myVote = 
         newVotesList.find( v => v.userId === this.state.currentUser.uid);
-
       this.setState({
         userVote: (myVote) ? myVote.vote : null,
         votes: newVotesList,
