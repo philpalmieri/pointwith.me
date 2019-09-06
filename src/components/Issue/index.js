@@ -4,7 +4,7 @@ import {
   Button,
   Card,
   Container,
-  Grid,
+  Divider,
   Header,
   Icon,
   Loader,
@@ -13,7 +13,7 @@ import {
 import { db, auth } from '../../firebase';
 import './issue.css';
 
-const availablePoints = [0,1,2,3,5,8,13,21,34,68];
+const availablePoints = [0,1,2,3,5,8,13,21];
 
 class Issue extends Component {
   state = {
@@ -28,6 +28,7 @@ class Issue extends Component {
     userVote: null,
     mostVotes: null,
     isLoaded: false,
+    isTableOwner: false,
   };
 
   componentDidMount() {
@@ -52,6 +53,7 @@ class Issue extends Component {
         isLocked: issue.isLocked || false,
         showVotes: issue.showVotes || false,
         isLoaded: true,
+        isTableOwner: this.state.ownerId === this.state.currentUser.uid,
       });
     });
   }
@@ -137,19 +139,19 @@ class Issue extends Component {
     );
   }
 
-  suggestion() {
-    let suggestion = '??';
-    let mode = '??';
-    if(this.state.showVotes) {
-      const total = this.state.votes.reduce((t, v) => t + v.vote, 0);
-      const suggestionAvg = (total / this.state.votes.length);
-      suggestion = availablePoints.find( p => p >= suggestionAvg);
-      mode = (this.state.mostVotes > -1) ? this.state.mostVotes : '--';
-    }
-    return(
-      <Header sub>Mode/Mean ({mode}/{suggestion})</Header>
-    );
-  }
+  //suggestion() {
+    //let suggestion = '??';
+    //let mode = '??';
+    //if(this.state.showVotes) {
+      //const total = this.state.votes.reduce((t, v) => t + v.vote, 0);
+      //const suggestionAvg = (total / this.state.votes.length);
+      //suggestion = availablePoints.find( p => p >= suggestionAvg);
+      //mode = (this.state.mostVotes > -1) ? this.state.mostVotes : '--';
+    //}
+    //return(
+      //<Header sub>Mode/Mean ({mode}/{suggestion})</Header>
+    //);
+  //}
 
   controls() {
     if(this.state.ownerId !== this.state.currentUser.uid) {
@@ -157,7 +159,7 @@ class Issue extends Component {
     }
 
     return(
-      <Grid.Column id='voteControls' floated='right' textAlign='right' width={8}>
+      <Container id='voteControls' textAlign='center'>
         <Button
           positive
           toggle
@@ -180,7 +182,7 @@ class Issue extends Component {
             size='large' />
             { ( () => (this.state.isLocked) ? 'Unlock' : 'Lock' )()} Voting
         </Button>
-      </Grid.Column>
+      </Container>
     );
   }
 
@@ -193,27 +195,20 @@ class Issue extends Component {
       <Container textAlign='center' id="issue">
         <Header as='h1'>{this.state.title}</Header>
         <Segment stacked>
-          <Grid>
-            <Grid.Column floated='left' width={6}>
-              <Header as='h1' textAlign='left'>
-                Votes
-                {this.suggestion()}
-              </Header>
-            </Grid.Column>
-            {this.controls()}
-          </Grid>
-            <Card.Group
-              itemsPerRow={4}
-              id="voteCards"
-            >
-              {this.state.votes.map((v) => (
-                <Card color='blue'
-                  className={(this.state.mostVotes == v.vote) ? 'mode' : ''}
-                  key={v.userId}>
-                  {(this.state.showVotes) ? v.vote : '?'}
-                </Card>
-              ))}
-            </Card.Group>
+          {this.controls()}
+          <Divider horizontal />
+          <Card.Group
+            itemsPerRow={4}
+            id="voteCards"
+          >
+            {this.state.votes.map((v) => (
+              <Card color='blue'
+                className={(this.state.mostVotes == v.vote && this.state.showVotes) ? 'mode' : ''}
+                key={v.userId}>
+                {(this.state.showVotes) ? v.vote : '?'}
+              </Card>
+            ))}
+          </Card.Group>
         </Segment>
         {this.votingBlock()}
         </Container>
