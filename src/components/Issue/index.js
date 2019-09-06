@@ -182,6 +182,8 @@ class Issue extends Component {
             size='large' />
             { ( () => (this.state.isLocked) ? 'Unlock' : 'Lock' )()} Voting
         </Button>
+
+        <Divider horizontal />
       </Container>
     );
   }
@@ -196,7 +198,6 @@ class Issue extends Component {
         <Header as='h1'>{this.state.title}</Header>
         <Segment stacked>
           {this.controls()}
-          <Divider horizontal />
           <Card.Group
             itemsPerRow={4}
             id="voteCards"
