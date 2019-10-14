@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-
+import store from 'store';
 import Layout from '../../containers/Layout';
 import SocialButtonList from '../SocialButtonList';
 import { auth } from '../../firebase';
@@ -40,8 +40,15 @@ const buttonList = {
 class Login extends Component {
   componentDidMount() {
     auth.getAuth().onAuthStateChanged(user => {
+      console.log(this.props.history);
       if (user) {
-        this.props.history.push('/dashboard');
+        const entryPoint = store.get('entryPoint');
+        if(entryPoint) {
+          store.remove('entryPoint');
+          this.props.history.push(entryPoint);
+        } else {
+          this.props.history.push('/dashboard');
+        }
       } else {
         this.props.history.push('/');
       }  

@@ -17,10 +17,10 @@ const propTypes = {
       visible: PropTypes.bool.isRequired,
       provider: PropTypes.func.isRequired
     },
-    anonymous: {
-      visible: PropTypes.bool.isRequired,
-      provider: PropTypes.func.isRequired
-    },
+    //anonymous: {
+      //visible: PropTypes.bool.isRequired,
+      //provider: PropTypes.func.isRequired
+    //},
     //twitter: PropTypes.shape({
       //visible: PropTypes.bool.isRequired,
       //provider: PropTypes.func.isRequired
