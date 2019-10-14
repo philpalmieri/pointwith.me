@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Delay from 'react-delay';
+import store from 'store';
 
 import { auth } from '../firebase';
 
@@ -14,6 +15,8 @@ export default WrappedComponent => {
         if (user) {
           this.setState({ providerData: user.providerData });
         } else {
+          store.set('entryPoint', this.props.location.pathname);
+          console.log(store.get('entryPoint'), this.props.location.pathname);
           this.props.history.push('/');
         }
       });

@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import * as moment from 'moment'
 import { 
   Button,
   Card,
