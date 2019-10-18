@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import * as moment from 'moment'
-import { 
+import {
   Button,
   Container,
   Form,
@@ -56,12 +56,12 @@ class PokerTable extends Component {
     }
     this.pokerTableRef.update({currentIssue});
   }
-    
-  
+
+
   getNextIssue = (currentIssue, issuesList) => {
     let nextIssue = false;
     issuesList.forEach( (issue, i) => {
-      if(issue.id == currentIssue) {
+      if(issue.id === currentIssue) {
         nextIssue = issuesList[i+1];
       }
     });
