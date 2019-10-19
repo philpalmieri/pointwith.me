@@ -19,17 +19,18 @@ body {
   font-family: Lato;
   font-weight: 700;
 }
-#voteControls a{
+#voteControls a {
   margin-left: 1em;
   color: #000;
   font-size: 1em;
   cursor: pointer;
 }
-#voteControls a:last-child{
+#voteControls a:last-child {
   margin-left: 2em;
 }
 #voteCards .mode {
   background-color: #21ba45;
+  color: white;
 }
 #modalControl {
   text-align: center;
@@ -44,7 +45,7 @@ footer {
   cursor: pointer;
 }
 .hidden {
- display: none !important; 
+ display: none !important;
 }
 
 /* Mobile Overrides */

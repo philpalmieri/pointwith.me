@@ -73,8 +73,8 @@ class Issue extends Component {
         return 0;
       });
 
-      //Get most votes
-      const calcMostVotes = newVotesList.reduce((acc, curr) => {
+      // Get most votes
+      const voteTally = newVotesList.reduce((acc, curr) => {
         if (curr.vote in acc) {
             acc[curr.vote]++;
         } else {
@@ -83,9 +83,22 @@ class Issue extends Component {
         return acc;
       }, {});
 
-      const topVote = Object.keys(calcMostVotes)[0] || -1;
-      const mostVotes =
-        (topVote > -1 && calcMostVotes[topVote] > 1) ? topVote : -1;
+      let mostVotes = -1;
+      let multipleModes = false;
+      for(let points in voteTally) {
+        let currentMostVotes = voteTally[mostVotes] || 0;
+        if(voteTally[points] === currentMostVotes) {
+          multipleModes = true;
+        } else if(voteTally[points] >= currentMostVotes) {
+          mostVotes = parseInt(points, 10);
+          multipleModes = false;
+        }
+      }
+      if(multipleModes) {
+        // don't highlight any point values
+        mostVotes = -1;
+      }
+
       const myVote =
         newVotesList.find( v => v.userId === this.state.currentUser.uid);
       this.setState({
@@ -202,7 +215,7 @@ class Issue extends Component {
             id="voteCards"
           >
             {this.state.votes.map((v) => (
-              <Card color='blue'
+              <Card color={(this.state.mostVotes === v.vote && this.state.showVotes) ? 'green' : 'blue'}
                 className={(this.state.mostVotes === v.vote && this.state.showVotes) ? 'mode' : ''}
                 key={v.userId}>
                 {(this.state.showVotes) ? v.vote : '?'}
