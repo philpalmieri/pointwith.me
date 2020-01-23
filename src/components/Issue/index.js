@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { 
+import {
   Button,
   Card,
   Container,
@@ -46,7 +46,7 @@ class Issue extends Component {
   loadIssue() {
     this.issueRef.on('value', snapshot => {
       const issue = snapshot.val();
-           
+
       this.setState({
         title: issue.title,
         isLocked: issue.isLocked || false,
@@ -73,8 +73,8 @@ class Issue extends Component {
         return 0;
       });
 
-      //Get most votes
-      const calcMostVotes = newVotesList.reduce((acc, curr) => { 
+      // Get most votes
+      const voteTally = newVotesList.reduce((acc, curr) => {
         if (curr.vote in acc) {
             acc[curr.vote]++;
         } else {
@@ -82,20 +82,33 @@ class Issue extends Component {
         }
         return acc;
       }, {});
-      
-      const topVote = Object.keys(calcMostVotes)[0] || -1;
-      const mostVotes =
-        (topVote > -1 && calcMostVotes[topVote] > 1) ? topVote : -1;
-      const myVote = 
+
+      let mostVotes = -1;
+      let multipleModes = false;
+      for(let points in voteTally) {
+        let currentMostVotes = voteTally[mostVotes] || 0;
+        if(voteTally[points] === currentMostVotes) {
+          multipleModes = true;
+        } else if(voteTally[points] >= currentMostVotes) {
+          mostVotes = parseInt(points, 10);
+          multipleModes = false;
+        }
+      }
+      if(multipleModes) {
+        // don't highlight any point values
+        mostVotes = -1;
+      }
+
+      const myVote =
         newVotesList.find( v => v.userId === this.state.currentUser.uid);
       this.setState({
         userVote: (myVote) ? myVote.vote : null,
         votes: newVotesList,
-        mostVotes 
+        mostVotes
       });
     });
   }
-  
+
   handleSelectVote(userVote) {
     if(userVote === this.state.userVote) {
       userVote = null;
@@ -109,7 +122,7 @@ class Issue extends Component {
     this.issueRef.child('showVotes').set(!this.state.showVotes);
   }
 
-  handleLock() { 
+  handleLock() {
     this.issueRef.child('isLocked').set(!this.state.isLocked);
   }
 
@@ -202,8 +215,8 @@ class Issue extends Component {
             id="voteCards"
           >
             {this.state.votes.map((v) => (
-              <Card color='blue'
-                className={(this.state.mostVotes == v.vote && this.state.showVotes) ? 'mode' : ''}
+              <Card color={(this.state.mostVotes === v.vote && this.state.showVotes) ? 'green' : 'blue'}
+                className={(this.state.mostVotes === v.vote && this.state.showVotes) ? 'mode' : ''}
                 key={v.userId}>
                 {(this.state.showVotes) ? v.vote : '?'}
               </Card>
