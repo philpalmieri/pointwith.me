@@ -1,4 +1,4 @@
-import db from '../firebase/db';
+import * as db from '../firebase/db';
 import * as tables from './pokerTables';
 
 jest.mock('../firebase/db', () => {

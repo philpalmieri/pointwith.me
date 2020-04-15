@@ -1,4 +1,4 @@
-import db from '../firebase/db';
+import * as db from '../firebase/db';
 
 /**
  * Creates an api client for managing issue data within a specfic poker table.
