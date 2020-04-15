@@ -51,7 +51,7 @@ class Dashboard extends Component {
   removePokerTable = (pokerTableId) => (e) => {
     e.preventDefault();
 
-    this.state.pokerTablesClient.remove(pokerTableId);
+    this.state.pokerTablesClient.remove(pokerTableId); // Optimistically deletes poker table. i.e. doesn't block the ui from updating
 
     const filteredPokerTables = this.state.pokerTables.filter(
       ({ id }) => id !== pokerTableId
