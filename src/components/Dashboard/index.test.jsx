@@ -36,7 +36,7 @@ jest.mock('../../firebase', () => {
 jest.mock('../../api/pokerTables', () => {
   return {
     createClient: jest.fn().mockReturnValue({
-      remove: jest.fn(),
+      remove: jest.fn().mockResolvedValue({}),
     }),
   };
 });
@@ -51,10 +51,9 @@ describe('dashboard page', () => {
       </MemoryRouter>
     );
 
-    debug(el);
-
     let listItems = el.querySelectorAll('.pwm-list-item');
 
+    // sanity check
     expect(listItems).toHaveLength(3);
     expect(el).toHaveTextContent('table 2');
 
@@ -62,13 +61,19 @@ describe('dashboard page', () => {
 
     fireEvent.click(deleteButton);
 
-    // const mockedPokerTablesApi = pokerTablesApi.mock.results[0].value;
+    // ensure the api call was made
+    const mockedPokerTablesClient =
+      pokerTablesApi.createClient.mock.results[0].value;
 
-    // expect(mockedPokerTablesApi.remove).toHaveBeenCalledWith('pt2');
+    expect(mockedPokerTablesClient.remove).toHaveBeenCalledWith('pt2');
 
-    listItems = el.querySelectorAll('.pwm-list-item');
+    listItems = el.querySelectorAll('.pwm-list-item'); // reload selection
 
     expect(listItems).toHaveLength(2);
     expect(el).not.toHaveTextContent('table 2');
+
+    // ensure we have the correct order of items
+    expect(listItems[0]).toHaveTextContent('table 1');
+    expect(listItems[1]).toHaveTextContent('table 3');
   });
 });
