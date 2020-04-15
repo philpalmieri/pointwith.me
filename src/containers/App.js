@@ -6,6 +6,7 @@ import Dashboard from '../components/Dashboard';
 import PokerTable from '../components/PokerTable';
 import About from '../components/About';
 import withAuthentication from '../containers/withAuthentication';
+import '../style.css';
 
 class App extends Component {
   render() {
@@ -14,7 +15,10 @@ class App extends Component {
         <Switch>
           <Route path="/" exact component={Login} />
           <Route path="/dashboard" component={withAuthentication(Dashboard)} />
-          <Route path="/table/:userId/:tableId" component={withAuthentication(PokerTable)} />
+          <Route
+            path="/table/:userId/:tableId"
+            component={withAuthentication(PokerTable)}
+          />
           <Route path="/about" component={About} />
         </Switch>
       </Router>
