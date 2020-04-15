@@ -45,7 +45,7 @@ describe('dashboard page', () => {
   it('can delete a poker table', () => {
     expect.hasAssertions();
 
-    const { debug, baseElement: el } = render(
+    const { baseElement: el } = render(
       <MemoryRouter>
         <Dashboard />
       </MemoryRouter>
