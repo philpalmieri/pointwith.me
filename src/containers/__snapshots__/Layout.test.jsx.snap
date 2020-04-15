@@ -55,7 +55,7 @@ exports[`layout should render 1`] = `
                 class="github icon"
               />
             </a>
-            © 2019 PointWith.me
+            © 2020 PointWith.me
           </p>
         </footer>
       </div>
