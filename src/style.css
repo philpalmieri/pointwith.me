@@ -1,0 +1,22 @@
+.pwm-list-item {
+  display: flex !important;
+  align-items: center;
+}
+
+.pwm-list-item .pwm-list-item-content {
+  flex-grow: 1;
+}
+
+button.pwm-delete {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+button.pwm-delete i {
+  transition: color 0.3s;
+}
+
+button.pwm-delete i:hover {
+  color: darkred !important;
+}
