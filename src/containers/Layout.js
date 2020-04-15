@@ -42,7 +42,7 @@ const Layout = ({ children, contentCenter }) => {
             >
               <Icon name="github" />
             </a>
-            &copy; 2019 PointWith.me
+            &copy; 2020 PointWith.me
           </p>
         </footer>
       </Container>
