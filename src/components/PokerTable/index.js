@@ -1,5 +1,6 @@
+// Theirs
 import React, { Component } from 'react';
-import * as moment from 'moment';
+import moment from 'moment';
 import {
   Button,
   Container,
@@ -10,10 +11,13 @@ import {
   Modal,
   Segment,
 } from 'semantic-ui-react';
+
+// Ours
 import { db, auth } from '../../firebase';
+import * as issues from '../../api/issues';
 import Layout from '../../containers/Layout';
 import Issue from '../Issue';
-//const uuid = require('uuid/v1');
+
 const shortid = require('shortid');
 
 class PokerTable extends Component {
@@ -23,6 +27,7 @@ class PokerTable extends Component {
     currentUser: auth.getAuth().currentUser,
     newIssueName: '',
     pokerTable: {},
+    issuesClient: null,
     issues: [],
     currentIssue: false,
     nextIssue: false,
@@ -35,6 +40,13 @@ class PokerTable extends Component {
       this.state.tableId
     );
     this.loadPokerTable();
+
+    this.setState({
+      issuesClient: issues.createClient(
+        this.state.currentUser.uid,
+        this.state.tableId
+      ),
+    });
   }
 
   handleCreateIssue = (e) => {
@@ -45,6 +57,18 @@ class PokerTable extends Component {
       votes: {},
     });
     this.setState({ newIssueName: '' });
+  };
+
+  removeIssue = (issueId) => (e) => {
+    e.preventDefault();
+
+    this.state.issuesClient.remove(issueId); // Optimistically deletes poker table. i.e. doesn't block the ui from updating
+
+    const filteredIssues = this.state.issues.filter(({ id }) => id !== issueId);
+
+    this.setState({
+      issues: filteredIssues,
+    });
   };
 
   handleNewIssueName = (e) => {
@@ -178,12 +202,12 @@ class PokerTable extends Component {
             <Header as="h1">Table Issues</Header>
             <List divided relaxed>
               {this.state.issues.map((s) => (
-                <List.Item
-                  className="issueLink pwm-list-item"
-                  key={s.id}
-                  onClick={() => this.handleViewIssue(s.id)}
-                >
-                  <List.Content className="pwm-list-item-content">
+                <List.Item className="issueLink pwm-list-item" key={s.id}>
+                  <List.Content
+                    className="pwm-list-item-content"
+                    onClick={() => this.handleViewIssue(s.id)}
+                    role="button"
+                  >
                     <List.Header>
                       <Icon name={s.isLocked ? 'lock' : 'unlock'} />
                       {s.title}
@@ -192,11 +216,18 @@ class PokerTable extends Component {
                       Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
                     </List.Description>
                   </List.Content>
-                  <div className="actions">
-                    <button className="pwm-delete">
-                      <Icon name="times" color="red" />
-                    </button>
-                  </div>
+
+                  {/* Only show the delete action if the authenticated user is the owner. */}
+                  {this.state.ownerId === this.state.currentUser.uid && (
+                    <div className="actions">
+                      <button
+                        className="pwm-delete"
+                        onClick={this.removeIssue(s.id)}
+                      >
+                        <Icon name="times" color="red" />
+                      </button>
+                    </div>
+                  )}
                 </List.Item>
               ))}
             </List>
