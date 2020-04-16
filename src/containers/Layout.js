@@ -1,22 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Container, Icon, Image, Menu } from 'semantic-ui-react'
+import { Container, Icon, Image, Menu } from 'semantic-ui-react';
 
 const propTypes = {
   children: PropTypes.node.isRequired,
-  contentCenter: PropTypes.bool
+  contentCenter: PropTypes.bool,
 };
 
 const defaultProps = {
-  contentCenter: false
+  contentCenter: false,
 };
 
 const Layout = ({ children, contentCenter }) => {
   return (
     <Container text style={{ marginTim: '1em' }}>
-      <Menu fixed='top' inverted>
+      <Menu fixed="top" inverted>
         <Container text id="topBranding">
-          <Image size='mini' src='/favicon-32x32.png' style={{ marginRight: '1.5em' }} />
+          <Image
+            size="mini"
+            src="/favicon-32x32.png"
+            style={{ marginRight: '1.5em' }}
+          />
           <p>Planning Poker for Remote Teams!</p>
         </Container>
       </Menu>
@@ -24,9 +28,21 @@ const Layout = ({ children, contentCenter }) => {
       <Container>
         <footer>
           <p>
-            <a href="https://twitter.com/pointwithme">
-              <Icon name='twitter' />
-              &copy; 2019 PointWith.me</a>
+            <a
+              href="https://twitter.com/pointwithme"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="twitter" />
+            </a>
+            <a
+              href="https://github.com/philpalmieri/pointwith.me"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="github" />
+            </a>
+            &copy; 2020 PointWith.me
           </p>
         </footer>
       </Container>

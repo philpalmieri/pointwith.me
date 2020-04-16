@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`layout should render 1`] = `
+<body>
+  <div>
+    <div
+      class="ui text container"
+    >
+      <div
+        class="ui inverted top fixed menu"
+      >
+        <div
+          class="ui text container"
+          id="topBranding"
+        >
+          <img
+            class="ui mini image"
+            src="/favicon-32x32.png"
+            style="margin-right: 1.5em;"
+          />
+          <p>
+            Planning Poker for Remote Teams!
+          </p>
+        </div>
+      </div>
+      <main
+        class=""
+      >
+        <p>
+          Content goes here.
+        </p>
+      </main>
+      <div
+        class="ui container"
+      >
+        <footer>
+          <p>
+            <a
+              href="https://twitter.com/pointwithme"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <i
+                aria-hidden="true"
+                class="twitter icon"
+              />
+            </a>
+            <a
+              href="https://github.com/philpalmieri/pointwith.me"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <i
+                aria-hidden="true"
+                class="github icon"
+              />
+            </a>
+            © 2020 PointWith.me
+          </p>
+        </footer>
+      </div>
+    </div>
+  </div>
+</body>
+`;
