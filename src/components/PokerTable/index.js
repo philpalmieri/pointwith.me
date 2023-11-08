@@ -24,7 +24,7 @@ class PokerTable extends Component {
   state = {
     ownerId: this.props.match.params.userId,
     tableId: this.props.match.params.tableId,
-    currentUser: auth.getAuth().currentUser,
+    currentUser: auth.auth.currentUser,
     newIssueName: '',
     pokerTable: {},
     issuesClient: null,

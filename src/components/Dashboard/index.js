@@ -25,7 +25,7 @@ class Dashboard extends Component {
     pokerTables: [],
     pokerTablesClient: null,
     newPokerTableName: '',
-    currentUser: auth.getAuth().currentUser,
+    currentUser: auth.auth.currentUser,
   };
 
   componentDidMount() {
@@ -140,7 +140,7 @@ class Dashboard extends Component {
         </Container>
         <Divider horizontal></Divider>
         <Container>
-          <Button negative onClick={() => auth.getAuth().signOut()}>
+          <Button negative onClick={() => auth.auth.signOut()}>
             Logout
           </Button>
         </Container>

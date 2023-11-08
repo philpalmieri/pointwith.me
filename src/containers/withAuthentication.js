@@ -11,7 +11,7 @@ export default WrappedComponent => {
     };
 
     componentDidMount() {
-      auth.getAuth().onAuthStateChanged(user => {
+      auth.auth.onAuthStateChanged(user => {
         if (user) {
           this.setState({ providerData: user.providerData });
         } else {

@@ -18,7 +18,7 @@ class Issue extends Component {
   state = {
     ownerId: this.props.ownerId,
     tableId: this.props.tableId,
-    currentUser: auth.getAuth().currentUser,
+    currentUser: auth.auth.currentUser,
     currentIssueId: this.props.issue,
     title: '',
     votes: [],
