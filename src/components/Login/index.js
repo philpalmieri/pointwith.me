@@ -38,8 +38,6 @@ const buttonList = {
 };
 
 const Login = () => {
-    console.group('Login');
-    console.groupEnd();
     const navigate = useNavigate();
     useEffect(() => {
         auth.auth.onAuthStateChanged(user => {

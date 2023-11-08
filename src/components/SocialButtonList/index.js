@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import {Button, Icon} from 'semantic-ui-react';
+import {popUpSignIn} from '../../firebase/auth';
 
 const propTypes = {
     buttonList: PropTypes.shape({
@@ -39,8 +40,6 @@ const defaultProps = {
 };
 
 const SocialButtonList = ({buttonList, auth, currentProviders}) => {
-    console.group('SocialButtonList');
-    console.groupEnd();
     const navigate = useNavigate();
     const authHandler = authData => {
         if (authData) {
@@ -57,13 +56,8 @@ const SocialButtonList = ({buttonList, auth, currentProviders}) => {
     const authenticate = (e, provider) => {
         const providerOAuth = buttonList[provider].provider();
         console.group('authenticate');
-        console.log('providerOAuth:', providerOAuth);
-        console.log('auth:', auth);
-        console.groupEnd();
-
         if (!auth.auth.currentUser) {
-            auth.auth
-                .signInWithPopup(providerOAuth)
+            popUpSignIn(providerOAuth)
                 .then(authHandler)
                 .catch(err => console.error(err));
         } else {

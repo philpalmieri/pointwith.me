@@ -9,8 +9,6 @@ import withAuthentication from '../containers/withAuthentication';
 import '../style.css';
 
 const App = () => {
-    console.group('App');
-    console.groupEnd();
     return (
         <BrowserRouter>
             <Routes>
