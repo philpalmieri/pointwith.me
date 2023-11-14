@@ -13,10 +13,10 @@ const App = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/" exact element={<Login />}/>
-                <Route path="/dashboard" element={withAuthentication(Dashboard)}/>
+                <Route path="/dashboard" element={<Dashboard />}/>
                 <Route
                     path="/table/:userId/:tableId"
-                    element={withAuthentication(PokerTable)}
+                    element={<PokerTable />}
                 />
                 <Route path="/about" element={<About />}/>
             </Routes>

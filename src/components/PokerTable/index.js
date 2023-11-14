@@ -17,6 +17,7 @@ import { db, auth } from '../../firebase';
 import * as issues from '../../api/issues';
 import Layout from '../../containers/Layout';
 import Issue from '../Issue';
+import withAuthentication from '../../containers/withAuthentication';
 
 const shortid = require('shortid');
 
@@ -248,4 +249,4 @@ class PokerTable extends Component {
   }
 }
 
-export default PokerTable;
+export default withAuthentication(PokerTable);
