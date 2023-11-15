@@ -1,4 +1,5 @@
 import * as db from '../firebase/db';
+import {onValue, remove as firebaseRemove, set} from 'firebase/database';
 
 /**
  * Creates an api client for managing issue data within a specfic poker table.
@@ -14,7 +15,7 @@ export const createClient = (userId, tableId) => {
    * @return a Promise
    */
   const remove = (issueId) => {
-    return db.pokerTableIssue(userId, tableId, issueId).remove();
+    return firebaseRemove(db.pokerTableIssue(userId, tableId, issueId));
   };
 
   return {

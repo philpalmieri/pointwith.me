@@ -1,9 +1,10 @@
 // Theirs
-import React, {Component} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import moment from 'moment';
 import {Button, Container, Divider, Form, Header, Icon, List, Segment,} from 'semantic-ui-react';
-import {child, onValue, push, ref, set} from 'firebase/database';
+import {onValue, remove, set} from 'firebase/database';
+import shortid from 'shortid';
 
 // Ours
 import {auth, db} from '../../firebase';
@@ -12,60 +13,66 @@ import Layout from '../../containers/Layout';
 import withAuthentication from '../../containers/withAuthentication';
 import {pokerTable, updatePokerTable} from '../../firebase/db';
 
-const shortid = require('shortid');
 
-class Dashboard extends Component {
-    state = {
+const Dashboard = () => {
+    const [state, setState] = useState({
         pokerTables: [],
         pokerTablesClient: null,
         newPokerTableName: '',
         currentUser: auth.auth.currentUser,
-    };
+    });
 
-    componentDidMount() {
-        this.loadPokerTables();
+    useEffect(() => {
+        loadPokerTables();
 
-        this.setState({
+        setState({
+            ...state,
             pokerTablesClient: pokerTablesApi.createClient(
-                this.state.currentUser.uid
+                state.currentUser.uid
             ),
         });
-    }
+    }, []);
 
-    createPokerTable = (e) => {
+    const createPokerTable = (e) => {
         const uid = shortid.generate();
-        const pRef = db.pokerTable(this.state.currentUser.uid, uid);
+        const pRef = db.pokerTable(state.currentUser.uid, uid);
+        // const pRef = db.pokerTablesRoot(state.currentUser.uid);
         const data = {
             created: new Date().toString(),
-            tableName: this.state.newPokerTableName,
+            tableName: state.newPokerTableName,
         };
         set(pRef, data)
             .then(() => console.log('Updated successfully'))
-            .catch((error)=> console.log('Error updating document: ', error));
-        this.setState({newPokerTableName: ''});
-        this.loadPokerTables();
+            .catch((error) => console.log('Error updating document: ', error));
+        setState({
+            ...state,
+            newPokerTableName: ''
+        });
+        loadPokerTables();
     };
 
-    removePokerTable = (pokerTableId) => (e) => {
+    const removePokerTable = (pokerTableId) => (e) => {
         e.preventDefault();
 
-        this.state.pokerTablesClient.remove(pokerTableId); // Optimistically deletes poker table. i.e. doesn't block the ui from updating
+        // Optimistically deletes poker table. i.e. doesn't block the ui from updating
+        remove(pokerTable(state.currentUser.uid, pokerTableId));
 
-        const filteredPokerTables = this.state.pokerTables.filter(
+        const filteredPokerTables = state.pokerTables.filter(
             ({id}) => id !== pokerTableId
         );
 
-        this.setState({
+        setState({
+            ...state,
             pokerTables: filteredPokerTables,
         });
     };
 
-    handleNewPokerTableName = (e) => {
-        this.setState({newPokerTableName: e.target.value});
+    const handleNewPokerTableName = (e) => {
+        setState({newPokerTableName: e.target.value});
     };
 
-    loadPokerTables = () => {
-        const pokerTablesRef = db.pokerTables(this.state.currentUser.uid);
+    const loadPokerTables = () => {
+        const pokerTablesRef = db.pokerTables(state.currentUser.uid);
         onValue(pokerTablesRef, (snapshot) => {
             const pokerTables = snapshot.val();
             let newPokerTablesState = [];
@@ -80,71 +87,69 @@ class Dashboard extends Component {
                 if (t2.created > t1.created) return 1;
                 return 0;
             });
-            this.setState({
+            setState({
                 pokerTables: newPokerTablesState,
             });
         });
     };
 
-    render() {
-        return (
-            <Layout>
-                <Container>
-                    <Segment raised>
-                        <Form onSubmit={this.createPokerTable}>
-                            <Header as="h1">Create Poker Table</Header>
-                            <Form.Field>
-                                <label>Poker Table Name</label>
-                                <input
-                                    placeholder="New Poker Table Name"
-                                    value={this.state.newPokerTableName}
-                                    onChange={this.handleNewPokerTableName}
-                                />
-                            </Form.Field>
-                            <Button primary type="submit">
-                                Create Poker Table
-                            </Button>
-                        </Form>
-                    </Segment>
-                    <Segment stacked>
-                        <Header as="h1">Your Poker Tables</Header>
-                        <List divided relaxed>
-                            {this.state.pokerTables.map((s) => (
-                                <List.Item key={s.id} className="pwm-list-item">
-                                    <Link
-                                        to={`/table/${this.state.currentUser.uid}/${s.id}`}
-                                        className="pwm-list-item-content"
+    return (
+        <Layout>
+            <Container>
+                <Segment raised>
+                    <Form onSubmit={createPokerTable}>
+                        <Header as="h1">Create Poker Table</Header>
+                        <Form.Field>
+                            <label>Poker Table Name</label>
+                            <input
+                                placeholder="New Poker Table Name"
+                                value={state.newPokerTableName}
+                                onChange={handleNewPokerTableName}
+                            />
+                        </Form.Field>
+                        <Button primary type="submit">
+                            Create Poker Table
+                        </Button>
+                    </Form>
+                </Segment>
+                <Segment stacked>
+                    <Header as="h1">Your Poker Tables</Header>
+                    <List divided relaxed>
+                        {state.pokerTables.map((s) => (
+                            <List.Item key={s.id} className="pwm-list-item">
+                                <Link
+                                    to={`/table/${state.currentUser.uid}/${s.id}`}
+                                    className="pwm-list-item-content"
+                                >
+                                    <List.Content>
+                                        <List.Header>{s.tableName}</List.Header>
+                                        <List.Description>Table ID: {s.id}</List.Description>
+                                        <List.Description>
+                                            Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+                                        </List.Description>
+                                    </List.Content>
+                                </Link>
+                                <div className="actions">
+                                    <button
+                                        className="pwm-delete"
+                                        onClick={removePokerTable(s.id)}
                                     >
-                                        <List.Content>
-                                            <List.Header>{s.tableName}</List.Header>
-                                            <List.Description>Table ID: {s.id}</List.Description>
-                                            <List.Description>
-                                                Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
-                                            </List.Description>
-                                        </List.Content>
-                                    </Link>
-                                    <div className="actions">
-                                        <button
-                                            className="pwm-delete"
-                                            onClick={this.removePokerTable(s.id)}
-                                        >
-                                            <Icon name="times" color="red"/>
-                                        </button>
-                                    </div>
-                                </List.Item>
-                            ))}
-                        </List>
-                    </Segment>
-                </Container>
-                <Divider horizontal></Divider>
-                <Container>
-                    <Button negative onClick={() => auth.auth.signOut()}>
-                        Logout
-                    </Button>
-                </Container>
-            </Layout>
-        );
-    }
-}
+                                        <Icon name="times" color="red"/>
+                                    </button>
+                                </div>
+                            </List.Item>
+                        ))}
+                    </List>
+                </Segment>
+            </Container>
+            <Divider horizontal></Divider>
+            <Container>
+                <Button negative onClick={() => auth.auth.signOut()}>
+                    Logout
+                </Button>
+            </Container>
+        </Layout>
+    );
+};
 
 export default withAuthentication(Dashboard);
