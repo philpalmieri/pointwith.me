@@ -1,5 +1,5 @@
 // Theirs
-import React, { Component } from 'react';
+import React, {Component, useEffect} from 'react';
 import moment from 'moment';
 import {
   Button,
@@ -18,13 +18,18 @@ import * as issues from '../../api/issues';
 import Layout from '../../containers/Layout';
 import Issue from '../Issue';
 import withAuthentication from '../../containers/withAuthentication';
+import {useNavigate, useParams} from 'react-router-dom';
+import {onValue, set} from 'firebase/database';
+import {pokerTableIssue} from '../../firebase/db';
+import shortid from 'shortid';
 
-const shortid = require('shortid');
 
-class PokerTable extends Component {
-  state = {
-    ownerId: this.props.match.params.userId,
-    tableId: this.props.match.params.tableId,
+const PokerTable = () => {
+  const navigate = useNavigate();
+  const params = useParams();
+  const [state, setState] = React.useState({
+    ownerId: params.userId,
+    tableId: params.tableId,
     currentUser: auth.auth.currentUser,
     newIssueName: '',
     pokerTable: {},
@@ -32,59 +37,68 @@ class PokerTable extends Component {
     issues: [],
     currentIssue: false,
     nextIssue: false,
-  };
+  });
+  const pokerTableRef = db.pokerTable(state.ownerId, state.tableId)
+  const ptIssuesRef = db.pokerTableIssuesRoot(
+      state.currentUser.uid,
+      state.tableId
+  );
 
-  componentDidMount() {
-    this.pokerTableRef = db.pokerTable(this.state.ownerId, this.state.tableId);
-    this.ptIssuesRef = db.pokerTableIssuesRoot(
-      this.state.currentUser.uid,
-      this.state.tableId
-    );
-    this.loadPokerTable();
-
-    this.setState({
+  useEffect(() => {
+    loadPokerTable();
+    setState({
+      ...state,
       issuesClient: issues.createClient(
-        this.state.currentUser.uid,
-        this.state.tableId
+          state.currentUser.uid,
+          state.tableId
       ),
     });
-  }
+  }, []);
 
-  handleCreateIssue = (e) => {
-    this.ptIssuesRef.child(shortid.generate()).update({
-      title: this.state.newIssueName,
-      created: new Date(),
-      score: 0,
-      votes: {},
+  const handleCreateIssue = (e) => {
+    const uid = shortid.generate();
+    const data = {
+      title: state.newIssueName,
+          created: new Date(),
+        score: 0,
+        votes: {},
+    }
+    set(db.pokerTableIssue(state.currentUser.uid, state.tableId, uid), data);
+    setState({
+      ...state,
+      newIssueName: ''
     });
-    this.setState({ newIssueName: '' });
   };
 
-  removeIssue = (issueId) => (e) => {
+  const removeIssue = (issueId) => (e) => {
     e.preventDefault();
 
-    this.state.issuesClient.remove(issueId); // Optimistically deletes poker table. i.e. doesn't block the ui from updating
+    state.issuesClient.remove(issueId); // Optimistically deletes poker table. i.e. doesn't block the ui from updating
 
-    const filteredIssues = this.state.issues.filter(({ id }) => id !== issueId);
+    const filteredIssues = state.issues.filter(({ id }) => id !== issueId);
 
-    this.setState({
+    setState({
+      ...state,
       issues: filteredIssues,
     });
   };
 
-  handleNewIssueName = (e) => {
-    this.setState({ newIssueName: e.target.value });
+  const handleNewIssueName = (e) => {
+    setState({
+      ...state,
+      newIssueName: e.target.value
+    });
   };
 
-  handleViewIssue = async (currentIssue) => {
-    await this.pokerTableRef.update({ currentIssue: false });
-    if (this.state.ownerId !== this.state.currentUser.uid) {
+  const handleViewIssue = async (currentIssue) => {
+    await pokerTableRef.update({ currentIssue: false });
+    if (state.ownerId !== state.currentUser.uid) {
       return;
     }
-    this.pokerTableRef.update({ currentIssue });
+    pokerTableRef.update({ currentIssue });
   };
 
-  getNextIssue = (currentIssue, issuesList) => {
+  const getNextIssue = (currentIssue, issuesList) => {
     let nextIssue = false;
     issuesList.forEach((issue, i) => {
       if (issue.id === currentIssue) {
@@ -95,12 +109,12 @@ class PokerTable extends Component {
     return nextIssue ? nextIssue.id : false;
   };
 
-  handleCloseIssue = async () => {
-    return await this.pokerTableRef.update({ currentIssue: false });
+  const handleCloseIssue = async () => {
+    return await pokerTableRef.update({ currentIssue: false });
   };
 
-  loadPokerTable = () => {
-    this.pokerTableRef.on('value', (snapshot) => {
+  const loadPokerTable = () => {
+    onValue(pokerTableRef, (snapshot) => {
       const table = snapshot.val();
       const newIssuesList = [];
       for (let issue in table.issues) {
@@ -115,8 +129,9 @@ class PokerTable extends Component {
         return 0;
       });
 
-      const nextIssue = this.getNextIssue(table.currentIssue, newIssuesList);
-      this.setState({
+      const nextIssue = getNextIssue(table.currentIssue, newIssuesList);
+      setState({
+        ...state,
         pokerTable: table,
         issues: newIssuesList,
         issueModal: table.issueModal || false,
@@ -126,21 +141,21 @@ class PokerTable extends Component {
     });
   };
 
-  showModalActions() {
-    if (this.state.ownerId !== this.state.currentUser.uid) {
+  const showModalActions = () => {
+    if (state.ownerId !== state.currentUser.uid) {
       return;
     }
     return (
       <Modal.Actions id="modalControl">
         <Button.Group>
-          <Button color="red" onClick={() => this.handleCloseIssue()}>
+          <Button color="red" onClick={handleCloseIssue}>
             <Icon name="close" /> Close
           </Button>
           <Button.Or />
           <Button
             color="green"
-            onClick={() => this.handleViewIssue(this.state.nextIssue)}
-            disabled={this.state.nextIssue ? false : true}
+            onClick={() => handleViewIssue(state.nextIssue)}
+            disabled={!state.nextIssue}
           >
             <Icon name="chevron right" /> Next
           </Button>
@@ -148,15 +163,15 @@ class PokerTable extends Component {
       </Modal.Actions>
     );
   }
-  showIssueCreator() {
-    if (this.state.ownerId !== this.state.currentUser.uid) {
+  const showIssueCreator = () => {
+    if (state.ownerId !== state.currentUser.uid) {
       return (
         <div>
-          <Header as="h1">{this.state.pokerTable.tableName}</Header>
+          <Header as="h1">{state.pokerTable.tableName}</Header>
           <Header
             sub
             as="a"
-            onClick={() => this.props.history.push('/dashboard')}
+            onClick={() => navigate('/dashboard')}
           >
             <Icon name="home" />
             Return to Lobby
@@ -165,12 +180,12 @@ class PokerTable extends Component {
       );
     }
     return (
-      <Form onSubmit={this.handleCreateIssue}>
-        <Header as="h1">{this.state.pokerTable.tableName}</Header>
+      <Form onSubmit={handleCreateIssue}>
+        <Header as="h1">{state.pokerTable.tableName}</Header>
         <Header
           sub
           as="a"
-          onClick={() => this.props.history.push('/dashboard')}
+          onClick={() => navigate('/dashboard')}
         >
           <Icon name="home" />
           Return to Lobby
@@ -183,8 +198,8 @@ class PokerTable extends Component {
           <label>Open Issues</label>
           <input
             placeholder="New Issue Name"
-            value={this.state.newIssueName}
-            onChange={this.handleNewIssueName}
+            value={state.newIssueName}
+            onChange={handleNewIssueName}
           />
         </Form.Field>
         <Button primary type="submit">
@@ -194,59 +209,57 @@ class PokerTable extends Component {
     );
   }
 
-  render() {
-    return (
-      <Layout>
-        <Container>
-          <Segment raised>{this.showIssueCreator()}</Segment>
-          <Segment stacked>
-            <Header as="h1">Table Issues</Header>
-            <List divided relaxed>
-              {this.state.issues.map((s) => (
-                <List.Item className="issueLink pwm-list-item" key={s.id}>
-                  <List.Content
-                    className="pwm-list-item-content"
-                    onClick={() => this.handleViewIssue(s.id)}
-                    role="button"
-                  >
-                    <List.Header>
-                      <Icon name={s.isLocked ? 'lock' : 'unlock'} />
-                      {s.title}
-                    </List.Header>
-                    <List.Description>
-                      Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
-                    </List.Description>
-                  </List.Content>
+  return (
+    <Layout>
+      <Container>
+        <Segment raised>{showIssueCreator()}</Segment>
+        <Segment stacked>
+          <Header as="h1">Table Issues</Header>
+          <List divided relaxed>
+            {state.issues.map((s) => (
+              <List.Item className="issueLink pwm-list-item" key={s.id}>
+                <List.Content
+                  className="pwm-list-item-content"
+                  onClick={() => handleViewIssue(s.id)}
+                  role="button"
+                >
+                  <List.Header>
+                    <Icon name={s.isLocked ? 'lock' : 'unlock'} />
+                    {s.title}
+                  </List.Header>
+                  <List.Description>
+                    Created: {moment(s.created).format('MM/DD/YYYY hh:mma')}
+                  </List.Description>
+                </List.Content>
 
-                  {/* Only show the delete action if the authenticated user is the owner. */}
-                  {this.state.ownerId === this.state.currentUser.uid && (
-                    <div className="actions">
-                      <button
-                        className="pwm-delete"
-                        onClick={this.removeIssue(s.id)}
-                      >
-                        <Icon name="times" color="red" />
-                      </button>
-                    </div>
-                  )}
-                </List.Item>
-              ))}
-            </List>
-          </Segment>
-        </Container>
-        <Modal open={this.state.currentIssue ? true : false} centered={false}>
-          <Modal.Content>
-            <Issue
-              issue={this.state.currentIssue}
-              ownerId={this.state.ownerId}
-              tableId={this.state.tableId}
-            />
-          </Modal.Content>
-          {this.showModalActions()}
-        </Modal>
-      </Layout>
-    );
-  }
+                {/* Only show the delete action if the authenticated user is the owner. */}
+                {state.ownerId === state.currentUser.uid && (
+                  <div className="actions">
+                    <button
+                      className="pwm-delete"
+                      onClick={removeIssue(s.id)}
+                    >
+                      <Icon name="times" color="red" />
+                    </button>
+                  </div>
+                )}
+              </List.Item>
+            ))}
+          </List>
+        </Segment>
+      </Container>
+      <Modal open={state.currentIssue ? true : false} centered={false}>
+        <Modal.Content>
+          <Issue
+            issue={state.currentIssue}
+            ownerId={state.ownerId}
+            tableId={state.tableId}
+          />
+        </Modal.Content>
+        {showModalActions()}
+      </Modal>
+    </Layout>
+  );
 }
 
 export default withAuthentication(PokerTable);
