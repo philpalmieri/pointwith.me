@@ -14,9 +14,7 @@ export const createClient = (userId, tableId) => {
    * @param {*} pokerTableId
    * @return a Promise
    */
-  const remove = (issueId) => {
-    return firebaseRemove(db.pokerTableIssue(userId, tableId, issueId));
-  };
+  const remove = (issueId) => firebaseRemove(db.pokerTableIssue(userId, tableId, issueId));
 
   return {
     remove,
