@@ -27,6 +27,4 @@ export const anonymousOAuth = () => {
   return new signInAnonymously();
 };
 
-export const popUpSignIn = (provider) => {
-  return signInWithPopup(auth, provider);
-}
+export const popUpSignIn = (provider) => signInWithPopup(auth, provider);

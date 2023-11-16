@@ -55,7 +55,6 @@ const SocialButtonList = ({buttonList, auth, currentProviders}) => {
 
     const authenticate = (e, provider) => {
         const providerOAuth = buttonList[provider].provider();
-        console.group('authenticate');
         if (!auth.auth.currentUser) {
             popUpSignIn(providerOAuth)
                 .then(authHandler)
