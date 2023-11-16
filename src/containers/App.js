@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter, Route, Routes} from 'react-router-dom';
+import {BrowserRouter, createBrowserRouter, Route, RouterProvider, Routes} from 'react-router-dom';
 
 import Login from '../components/Login';
 import Dashboard from '../components/Dashboard';
@@ -8,20 +8,15 @@ import About from '../components/About';
 import withAuthentication from '../containers/withAuthentication';
 import '../style.css';
 
+const router = createBrowserRouter([
+    {path: "/", Component: Login},
+    {path: "/about", Component: About},
+    {path: "/dashboard", Component: Dashboard},
+    {path: "/table/:userId/:tableId", Component: PokerTable},
+])
+
 const App = () => {
-    return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" exact element={<Login />}/>
-                <Route path="/dashboard" element={<Dashboard />}/>
-                <Route
-                    path="/table/:userId/:tableId"
-                    element={<PokerTable />}
-                />
-                <Route path="/about" element={<About />}/>
-            </Routes>
-        </BrowserRouter>
-    );
+    return <RouterProvider router={router} />;
 }
 
 export default App;
