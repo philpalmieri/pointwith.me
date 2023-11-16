@@ -11,43 +11,28 @@ import {auth, db} from '../../firebase';
 import * as pokerTablesApi from '../../api/pokerTables';
 import Layout from '../../containers/Layout';
 import withAuthentication from '../../containers/withAuthentication';
-import {pokerTable, updatePokerTable} from '../../firebase/db';
+import PokerTableNameForm from './PokerTableNameForm';
 
 
 const Dashboard = () => {
-    const [state, setState] = useState({
-        pokerTables: [],
-        pokerTablesClient: null,
-        newPokerTableName: '',
-        currentUser: auth.auth.currentUser,
-    });
+    const currentUser = auth.auth.currentUser;
+    const pokerTablesClient = pokerTablesApi.createClient(currentUser.uid);
+    const [pokerTables, setPokerTables] = useState([]);
 
     useEffect(() => {
         loadPokerTables();
-
-        setState({
-            ...state,
-            pokerTablesClient: pokerTablesApi.createClient(
-                state.currentUser.uid
-            ),
-        });
     }, []);
 
-    const createPokerTable = (e) => {
+    const createPokerTable = (newPokerTableName) => {
         const uid = shortid.generate();
-        const pRef = db.pokerTable(state.currentUser.uid, uid);
-        // const pRef = db.pokerTablesRoot(state.currentUser.uid);
+        const pRef = db.pokerTable(currentUser.uid, uid);
         const data = {
             created: new Date().toString(),
-            tableName: state.newPokerTableName,
+            tableName: newPokerTableName,
         };
         set(pRef, data)
             .then(() => console.log('Updated successfully'))
             .catch((error) => console.log('Error updating document: ', error));
-        setState({
-            ...state,
-            newPokerTableName: ''
-        });
         loadPokerTables();
     };
 
@@ -55,24 +40,17 @@ const Dashboard = () => {
         e.preventDefault();
 
         // Optimistically deletes poker table. i.e. doesn't block the ui from updating
-        remove(pokerTable(state.currentUser.uid, pokerTableId));
+        pokerTablesClient.remove(pokerTableId);
 
-        const filteredPokerTables = state.pokerTables.filter(
+        const filteredPokerTables = pokerTables.filter(
             ({id}) => id !== pokerTableId
         );
 
-        setState({
-            ...state,
-            pokerTables: filteredPokerTables,
-        });
-    };
-
-    const handleNewPokerTableName = (e) => {
-        setState({newPokerTableName: e.target.value});
+        setPokerTables(filteredPokerTables);
     };
 
     const loadPokerTables = () => {
-        const pokerTablesRef = db.pokerTables(state.currentUser.uid);
+        const pokerTablesRef = db.pokerTables(currentUser.uid);
         onValue(pokerTablesRef, (snapshot) => {
             const pokerTables = snapshot.val();
             let newPokerTablesState = [];
@@ -87,9 +65,7 @@ const Dashboard = () => {
                 if (t2.created > t1.created) return 1;
                 return 0;
             });
-            setState({
-                pokerTables: newPokerTablesState,
-            });
+            setPokerTables(newPokerTablesState);
         });
     };
 
@@ -97,28 +73,15 @@ const Dashboard = () => {
         <Layout>
             <Container>
                 <Segment raised>
-                    <Form onSubmit={createPokerTable}>
-                        <Header as="h1">Create Poker Table</Header>
-                        <Form.Field>
-                            <label>Poker Table Name</label>
-                            <input
-                                placeholder="New Poker Table Name"
-                                value={state.newPokerTableName}
-                                onChange={handleNewPokerTableName}
-                            />
-                        </Form.Field>
-                        <Button primary type="submit">
-                            Create Poker Table
-                        </Button>
-                    </Form>
+                    <PokerTableNameForm handlePokerTableSubmit={createPokerTable}/>
                 </Segment>
                 <Segment stacked>
                     <Header as="h1">Your Poker Tables</Header>
                     <List divided relaxed>
-                        {state.pokerTables.map((s) => (
+                        {pokerTables.map((s) => (
                             <List.Item key={s.id} className="pwm-list-item">
                                 <Link
-                                    to={`/table/${state.currentUser.uid}/${s.id}`}
+                                    to={`/table/${currentUser.uid}/${s.id}`}
                                     className="pwm-list-item-content"
                                 >
                                     <List.Content>
