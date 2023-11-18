@@ -78,7 +78,7 @@ const Dashboard = () => {
                 <Segment stacked>
                     <Header as="h1">Your Poker Tables</Header>
                     <List divided relaxed>
-                        {pokerTables.map((s) => (
+                        {pokerTables.length ? pokerTables.map((s) => (
                             <List.Item key={s.id} className="pwm-list-item">
                                 <Link
                                     to={`/table/${currentUser.uid}/${s.id}`}
@@ -101,7 +101,7 @@ const Dashboard = () => {
                                     </button>
                                 </div>
                             </List.Item>
-                        ))}
+                        )) : `No poker tables found. Create one above!`}
                     </List>
                 </Segment>
             </Container>
