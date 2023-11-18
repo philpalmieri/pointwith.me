@@ -12,50 +12,44 @@ import withAuthentication from '../../containers/withAuthentication';
 import {useNavigate, useParams} from 'react-router-dom';
 import {onValue, set} from 'firebase/database';
 import shortid from 'shortid';
+import IssueNameForm from './IssueNameForm';
 
 
 const PokerTable = () => {
     const navigate = useNavigate();
-    const params = useParams();
+    const {userId, tableId} = useParams();
+    const currentUser = auth.auth.currentUser;
     const issuesClient = issues.createClient(
-        auth.auth.currentUser.uid,
-        params.tableId
+        currentUser.uid,
+        tableId
     );
     const [state, setState] = React.useState({
-        ownerId: params.userId,
-        tableId: params.tableId,
-        currentUser: auth.auth.currentUser,
-        newIssueName: '',
         pokerTable: {},
         issuesClient: null,
         issues: [],
         currentIssue: false,
         nextIssue: false,
     });
-    const pokerTableRef = db.pokerTable(state.ownerId, state.tableId);
+    const pokerTableRef = db.pokerTable(userId, tableId);
     const ptIssuesRef = db.pokerTableIssuesRoot(
-        state.currentUser.uid,
-        state.tableId
+        currentUser.uid,
+        tableId
     );
 
     useEffect(() => {
         loadPokerTable();
     }, []);
 
-    const handleCreateIssue = (e) => {
+    const handleCreateIssue = (newIssueName) => {
         const uid = shortid.generate();
         const data = {
-            title: state.newIssueName,
+            title: newIssueName,
             created: new Date(),
             score: 0,
             votes: {},
         };
-        set(db.pokerTableIssue(state.currentUser.uid, state.tableId, uid), data)
+        set(db.pokerTableIssue(currentUser.uid, tableId, uid), data)
             .then(() => loadPokerTable());
-        setState({
-            ...state,
-            newIssueName: ''
-        });
     };
 
     const removeIssue = (issueId) => (e) => {
@@ -71,18 +65,9 @@ const PokerTable = () => {
         });
     };
 
-    const handleNewIssueName = (e) => {
-        if (e.target.value.trim().length > 0) {
-            setState({
-                ...state,
-                newIssueName: e.target.value
-            });
-        }
-    };
-
     const handleViewIssue = async (currentIssue) => {
         await pokerTableRef.update({currentIssue: false});
-        if (state.ownerId !== state.currentUser.uid) {
+        if (userId !== currentUser.uid) {
             return;
         }
         pokerTableRef.update({currentIssue});
@@ -105,34 +90,36 @@ const PokerTable = () => {
 
     const loadPokerTable = () => {
         onValue(pokerTableRef, (snapshot) => {
-            const table = snapshot.val();
-            const newIssuesList = [];
-            for (let issue in table.issues) {
-                newIssuesList.push({
-                    ...table.issues[issue],
-                    id: issue,
+            if (snapshot.exists()) {
+                const table = snapshot.val();
+                const newIssuesList = [];
+                for (let issue in table.issues) {
+                    newIssuesList.push({
+                        ...table.issues[issue],
+                        id: issue,
+                    });
+                }
+                newIssuesList.sort((i1, i2) => {
+                    if (i1.created > i2.created) return 1;
+                    if (i2.created > i1.created) return -1;
+                    return 0;
+                });
+
+                const nextIssue = getNextIssue(table.currentIssue, newIssuesList);
+                setState({
+                    ...state,
+                    pokerTable: table,
+                    issues: newIssuesList,
+                    issueModal: table.issueModal || false,
+                    currentIssue: table.currentIssue || false,
+                    nextIssue,
                 });
             }
-            newIssuesList.sort((i1, i2) => {
-                if (i1.created > i2.created) return 1;
-                if (i2.created > i1.created) return -1;
-                return 0;
-            });
-
-            const nextIssue = getNextIssue(table.currentIssue, newIssuesList);
-            setState({
-                ...state,
-                pokerTable: table,
-                issues: newIssuesList,
-                issueModal: table.issueModal || false,
-                currentIssue: table.currentIssue || false,
-                nextIssue,
-            });
         });
     };
 
     const showModalActions = () => {
-        if (state.ownerId !== state.currentUser.uid) {
+        if (userId !== currentUser.uid) {
             return;
         }
         return (
@@ -154,7 +141,7 @@ const PokerTable = () => {
         );
     };
     const showIssueCreator = () => {
-        if (state.ownerId !== state.currentUser.uid) {
+        if (userId !== currentUser.uid) {
             return (
                 <div>
                     <Header as="h1">{state.pokerTable.tableName}</Header>
@@ -170,7 +157,7 @@ const PokerTable = () => {
             );
         }
         return (
-            <Form onSubmit={handleCreateIssue}>
+            <>
                 <Header as="h1">{state.pokerTable.tableName}</Header>
                 <Header
                     sub
@@ -183,19 +170,8 @@ const PokerTable = () => {
                 <p>
                     Copy this table's URL to share with your team for a pointing session
                 </p>
-                <Header as="h2">Create Issue</Header>
-                <Form.Field>
-                    <label>Open Issues</label>
-                    <input
-                        placeholder="New Issue Name"
-                        value={state.newIssueName}
-                        onChange={handleNewIssueName}
-                    />
-                </Form.Field>
-                <Button primary type="submit">
-                    Create Issue
-                </Button>
-            </Form>
+                <IssueNameForm handleIssueSubmit={handleCreateIssue}/>
+            </>
         );
     };
 
@@ -223,7 +199,7 @@ const PokerTable = () => {
                                 </List.Content>
 
                                 {/* Only show the delete action if the authenticated user is the owner. */}
-                                {state.ownerId === state.currentUser.uid && (
+                                {userId === currentUser.uid && (
                                     <div className="actions">
                                         <button
                                             className="pwm-delete"
@@ -242,8 +218,8 @@ const PokerTable = () => {
                 <Modal.Content>
                     <Issue
                         issue={state.currentIssue}
-                        ownerId={state.ownerId}
-                        tableId={state.tableId}
+                        userId={userId}
+                        tableId={tableId}
                     />
                 </Modal.Content>
                 {showModalActions()}
