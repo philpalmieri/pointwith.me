@@ -6,6 +6,7 @@ const PokerTableNameForm = ({ handlePokerTableSubmit }) => {
     const handleNewPokerTableName = (e) => setPokerTableName(e.target.value);
     const handleSubmit = () => {
         handlePokerTableSubmit(pokerTableName);
+        setPokerTableName('');
     }
 
     return (
