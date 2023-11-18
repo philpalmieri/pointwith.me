@@ -10,7 +10,7 @@ import Layout from '../../containers/Layout';
 import Issue from '../Issue';
 import withAuthentication from '../../containers/withAuthentication';
 import {useNavigate, useParams} from 'react-router-dom';
-import {onValue, set} from 'firebase/database';
+import {onValue, set, update} from 'firebase/database';
 import shortid from 'shortid';
 import IssueNameForm from './IssueNameForm';
 
@@ -66,11 +66,13 @@ const PokerTable = () => {
     };
 
     const handleViewIssue = async (currentIssue) => {
-        await pokerTableRef.update({currentIssue: false});
-        if (userId !== currentUser.uid) {
-            return;
-        }
-        pokerTableRef.update({currentIssue});
+        update(pokerTableRef, {currentIssue: false})
+            .then(() => {
+                if (userId !== currentUser.uid) {
+                    return;
+                }
+                update(pokerTableRef, {currentIssue});
+            })
     };
 
     const getNextIssue = (currentIssue, issuesList) => {
@@ -85,7 +87,7 @@ const PokerTable = () => {
     };
 
     const handleCloseIssue = async () => {
-        return await pokerTableRef.update({currentIssue: false});
+        update(pokerTableRef, {currentIssue: false});
     };
 
     const loadPokerTable = () => {
