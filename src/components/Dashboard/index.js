@@ -52,20 +52,22 @@ const Dashboard = () => {
     const loadPokerTables = () => {
         const pokerTablesRef = db.pokerTables(currentUser.uid);
         onValue(pokerTablesRef, (snapshot) => {
-            const pokerTables = snapshot.val();
-            let newPokerTablesState = [];
-            for (let table in pokerTables) {
-                newPokerTablesState.push({
-                    ...pokerTables[table],
-                    id: table,
+            if (snapshot.exists()) {
+                const pokerTables = snapshot.val();
+                let newPokerTablesState = [];
+                for (let table in pokerTables) {
+                    newPokerTablesState.push({
+                        ...pokerTables[table],
+                        id: table,
+                    });
+                }
+                newPokerTablesState.sort((t1, t2) => {
+                    if (t1.created > t2.created) return -1;
+                    if (t2.created > t1.created) return 1;
+                    return 0;
                 });
+                setPokerTables(newPokerTablesState);
             }
-            newPokerTablesState.sort((t1, t2) => {
-                if (t1.created > t2.created) return -1;
-                if (t2.created > t1.created) return 1;
-                return 0;
-            });
-            setPokerTables(newPokerTablesState);
         });
     };
 
