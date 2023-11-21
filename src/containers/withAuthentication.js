@@ -16,7 +16,6 @@ export default WrappedComponent => {
           this.setState({ providerData: user.providerData });
         } else {
           store.set('entryPoint', this.props.location.pathname);
-          console.log(store.get('entryPoint'), this.props.location.pathname);
           this.props.history.push('/');
         }
       });
