@@ -3,9 +3,10 @@ import {Button, Card, Container, Divider, Header, Icon, Loader, Segment,} from '
 import {auth, db} from '../../firebase';
 import './issue.css';
 import {useParams} from 'react-router-dom';
-import {onValue} from 'firebase/database';
-
-const availablePoints = [0, 1, 2, 3, 5, 8, 13, 21];
+import {child, onValue, set, update} from 'firebase/database';
+import fibonacci from '../../utils/fibonacci';
+import VotingBlock from './VotingBlock';
+import Controls from './Controls';
 
 const Issue = ({issue}) => {
     const {userId, tableId} = useParams();
@@ -36,67 +37,71 @@ const Issue = ({issue}) => {
 
     const loadIssue = () => {
         onValue(issueRef, snapshot => {
-            const issue = snapshot.val();
+            if (snapshot.exists()) {
+                const issue = snapshot.val();
 
-            setState({
-                title: issue.title,
-                isLocked: issue.isLocked || false,
-                showVotes: issue.showVotes || false,
-                isLoaded: true,
-                isTableOwner: userId === currentUser.uid,
-            });
+                setState({
+                    title: issue.title,
+                    isLocked: issue.isLocked || false,
+                    showVotes: issue.showVotes || false,
+                    isLoaded: true,
+                    isTableOwner: userId === currentUser.uid,
+                });
+            }
         });
     };
 
     const loadVotes = () => {
         onValue(votesRef, snapshot => {
-            const newVotesList = [];
-            const votes = snapshot.val() || {};
-            for (let vote in votes) {
-                newVotesList.push({
-                    ...votes[vote],
-                    userId: vote,
+            if (snapshot.exists()) {
+                const newVotesList = [];
+                const votes = snapshot.val() || {};
+                for (let vote in votes) {
+                    newVotesList.push({
+                        ...votes[vote],
+                        userId: vote,
+                    });
+                }
+                newVotesList.sort((v1, v2) => {
+                    if (v1.vote > v2.vote) return 1;
+                    if (v2.vote > v1.vote) return -1;
+                    return 0;
+                });
+
+                // Get most votes
+                const voteTally = newVotesList.reduce((acc, curr) => {
+                    if (curr.vote in acc) {
+                        acc[curr.vote]++;
+                    } else {
+                        acc[curr.vote] = 1;
+                    }
+                    return acc;
+                }, {});
+
+                let mostVotes = -1;
+                let multipleModes = false;
+                for (let points in voteTally) {
+                    let currentMostVotes = voteTally[mostVotes] || 0;
+                    if (voteTally[points] === currentMostVotes) {
+                        multipleModes = true;
+                    } else if (voteTally[points] >= currentMostVotes) {
+                        mostVotes = parseInt(points, 10);
+                        multipleModes = false;
+                    }
+                }
+                if (multipleModes) {
+                    // don't highlight any point values
+                    mostVotes = -1;
+                }
+
+                const myVote =
+                    newVotesList.find(v => v.userId === currentUser.uid);
+                setState({
+                    userVote: (myVote) ? myVote.vote : null,
+                    votes: newVotesList.length ? newVotesList : [],
+                    mostVotes
                 });
             }
-            newVotesList.sort((v1, v2) => {
-                if (v1.vote > v2.vote) return 1;
-                if (v2.vote > v1.vote) return -1;
-                return 0;
-            });
-
-            // Get most votes
-            const voteTally = newVotesList.reduce((acc, curr) => {
-                if (curr.vote in acc) {
-                    acc[curr.vote]++;
-                } else {
-                    acc[curr.vote] = 1;
-                }
-                return acc;
-            }, {});
-
-            let mostVotes = -1;
-            let multipleModes = false;
-            for (let points in voteTally) {
-                let currentMostVotes = voteTally[mostVotes] || 0;
-                if (voteTally[points] === currentMostVotes) {
-                    multipleModes = true;
-                } else if (voteTally[points] >= currentMostVotes) {
-                    mostVotes = parseInt(points, 10);
-                    multipleModes = false;
-                }
-            }
-            if (multipleModes) {
-                // don't highlight any point values
-                mostVotes = -1;
-            }
-
-            const myVote =
-                newVotesList.find(v => v.userId === currentUser.uid);
-            setState({
-                userVote: (myVote) ? myVote.vote : null,
-                votes: newVotesList,
-                mostVotes
-            });
         });
     };
 
@@ -105,42 +110,15 @@ const Issue = ({issue}) => {
             userVote = null;
         }
         setState({userVote});
-        // TODO: update
-        votesRef.child(currentUser.uid)
-            .update({vote: userVote});
+        update(child(votesRef, currentUser.uid), {vote: userVote});
     };
 
     const handleShow = () => {
-        issueRef.child('showVotes').set(!state.showVotes);
+        set(issueRef, {'showVotes': !state.showVotes});
     };
 
     const handleLock = () => {
-        issueRef.child('isLocked').set(!state.isLocked);
-    };
-
-    const votingBlock = () => {
-        if (state.isLocked) {
-            return;
-        }
-        return (
-            <Segment raised textAlign="center">
-                <Card.Group
-                    itemsPerRow={2}
-                    id="voteCards"
-                    className={(state.isLocked) ? 'locked' : 'unlocked'}
-                >
-                    {availablePoints.map(p => (
-                        <Card
-                            key={p}
-                            onClick={() => this.handleSelectVote(p)}
-                            color="blue"
-                            className={(state.userVote === p) ? 'selected' : ''}>
-                            {p}
-                        </Card>
-                    ))}
-                </Card.Group>
-            </Segment>
-        );
+        set(issueRef, {'isLocked': !state.isLocked});
     };
 
     //suggestion() {
@@ -200,12 +178,17 @@ const Issue = ({issue}) => {
         <Container textAlign="center" id="issue">
             <Header as="h1">{state.title}</Header>
             <Segment stacked>
-                {controls()}
+                {(userId !== currentUser.uid) ?
+                    <Controls
+                        onClick={handleShow}
+                        isLocked={state.isLocked}
+                        showVotes={state.showVotes}
+                    /> : null}
                 <Card.Group
                     itemsPerRow={4}
                     id="voteCards"
                 >
-                    {state.votes.map((v) => (
+                    {state.votes && state.votes.map((v) => (
                         <Card color={(state.mostVotes === v.vote && state.showVotes) ? 'green' : 'blue'}
                               className={(state.mostVotes === v.vote && state.showVotes) ? 'mode' : ''}
                               key={v.userId}>
@@ -214,7 +197,12 @@ const Issue = ({issue}) => {
                     ))}
                 </Card.Group>
             </Segment>
-            {votingBlock()}
+            {state.isLocked ?
+                <VotingBlock
+                    isLocked={state.isLocked}
+                    onClick={handleSelectVote}
+                    userVote={state.userVote}
+                /> : null}
         </Container>
     );
 };
