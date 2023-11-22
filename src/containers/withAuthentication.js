@@ -22,7 +22,6 @@ export default WrappedComponent => {
       });
     }, [])
 
-    console.log('providerData', providerData);
     if (providerData.length > 0) {
       return (
           <WrappedComponent
