@@ -1,7 +1,7 @@
 // Theirs
 import React, {useEffect} from 'react';
 import moment from 'moment';
-import {Button, Container, Form, Header, Icon, List, Modal, Segment,} from 'semantic-ui-react';
+import {Button, Container, Header, Icon, List, Modal, Segment,} from 'semantic-ui-react';
 
 // Ours
 import {auth, db} from '../../firebase';
@@ -13,6 +13,7 @@ import {useNavigate, useParams} from 'react-router-dom';
 import {onValue, set, update} from 'firebase/database';
 import shortid from 'shortid';
 import IssueNameForm from './IssueNameForm';
+import IssueCreator from './IssueCreator';
 
 
 const PokerTable = () => {
@@ -72,7 +73,7 @@ const PokerTable = () => {
                     return;
                 }
                 update(pokerTableRef, {currentIssue});
-            })
+            });
     };
 
     const getNextIssue = (currentIssue, issuesList) => {
@@ -142,45 +143,16 @@ const PokerTable = () => {
             </Modal.Actions>
         );
     };
-    const showIssueCreator = () => {
-        if (userId !== currentUser.uid) {
-            return (
-                <div>
-                    <Header as="h1">{state.pokerTable.tableName}</Header>
-                    <Header
-                        sub
-                        as="a"
-                        onClick={() => navigate('/dashboard')}
-                    >
-                        <Icon name="home"/>
-                        Return to Lobby
-                    </Header>
-                </div>
-            );
-        }
-        return (
-            <>
-                <Header as="h1">{state.pokerTable.tableName}</Header>
-                <Header
-                    sub
-                    as="a"
-                    onClick={() => navigate('/dashboard')}
-                >
-                    <Icon name="home"/>
-                    Return to Lobby
-                </Header>
-                <p>
-                    Copy this table's URL to share with your team for a pointing session
-                </p>
-                <IssueNameForm handleIssueSubmit={handleCreateIssue}/>
-            </>
-        );
-    };
 
     return (
         <Layout>
             <Container>
-                <Segment raised>{showIssueCreator()}</Segment>
+                <Segment raised>
+                    <IssueCreator
+                        onClick={handleCreateIssue}
+                        tableName={state.pokerTable.tableName}
+                    />
+                </Segment>
                 <Segment stacked>
                     <Header as="h1">Table Issues</Header>
                     <List divided relaxed>
