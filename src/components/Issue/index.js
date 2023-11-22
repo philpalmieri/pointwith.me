@@ -135,41 +135,6 @@ const Issue = ({issue}) => {
     //);
     //}
 
-    const controls = () => {
-        if (userId !== currentUser.uid) {
-            return;
-        }
-
-        return (
-            <Container id="voteControls" textAlign="center">
-                <Button
-                    positive
-                    toggle
-                    active={state.showVotes}
-                    onClick={handleShow}
-                >
-                    <Icon
-                        name={(state.showVotes) ? 'eye slash' : 'eye'}
-                        size="large"/>
-                    {`${state.showVotes ? 'Hide' : 'Show'}`} Votes
-                </Button>
-                <Button
-                    negative
-                    toggle
-                    active={state.isLocked}
-                    onClick={handleLock}
-                >
-                    <Icon
-                        name={(state.isLocked) ? 'unlock' : 'lock'}
-                        size="large"/>
-                    {`${state.isLocked ? 'Unlock' : 'Lock'}`} Voting
-                </Button>
-
-                <Divider horizontal/>
-            </Container>
-        );
-    };
-
     if (!state.isLoaded) {
         return (<Loader size="large">Loading</Loader>);
     }
