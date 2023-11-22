@@ -1,33 +1,37 @@
-import React, { Component } from 'react';
+import React, {Component, useEffect, useState} from 'react';
 import Delay from 'react-delay';
 import store from 'store';
 
 import { auth } from '../firebase';
+import {useLocation, useNavigate} from 'react-router-dom';
 
 export default WrappedComponent => {
-  class WithAuthentication extends Component {
-    state = {
-      providerData: []
-    };
+  const WithAuthentication = (props) => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [providerData, setProviderData] = useState([]);
 
-    componentDidMount() {
+    useEffect(() => {
       auth.auth.onAuthStateChanged(user => {
         if (user) {
-          this.setState({ providerData: user.providerData });
+          setProviderData(user.providerData);
         } else {
-          store.set('entryPoint', this.props.location.pathname);
-          this.props.history.push('/');
+          store.set('entryPoint', location.pathname);
+          navigate('/');
         }
       });
-    }
+    }, [])
 
-    render() {
-      return this.state.providerData.length > 0 ? (
-        <WrappedComponent
-          {...this.props}
-          providerData={this.state.providerData}
-        />
-      ) : (
+    console.log('providerData', providerData);
+    if (providerData.length > 0) {
+      return (
+          <WrappedComponent
+              {...props}
+              providerData={providerData}
+          />
+      )
+    } else {
+      return (
         <Delay wait={250}>
           <p>Loading...</p>
         </Delay>
