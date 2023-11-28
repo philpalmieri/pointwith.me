@@ -165,7 +165,7 @@ const Issue = ({issue}) => {
 					))}
 				</Card.Group>
 			</Segment>
-			{state.isLocked ?
+			{!state.isLocked ?
 				<VotingBlock
 					isLocked={state.isLocked}
 					onClick={handleSelectVote}
