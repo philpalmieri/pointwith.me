@@ -13,6 +13,7 @@ import {useParams} from 'react-router-dom';
 import {child, onValue, set, update} from 'firebase/database';
 import shortid from 'shortid';
 import IssueCreator from './IssueCreator';
+import ModalActions from './ModalActions';
 
 
 const PokerTable = () => {
@@ -119,29 +120,6 @@ const PokerTable = () => {
 		});
 	};
 
-	const showModalActions = () => {
-		if (userId !== currentUser.uid) {
-			return;
-		}
-		return (
-			<Modal.Actions id="modalControl">
-				<Button.Group>
-					<Button color="red" onClick={handleCloseIssue}>
-						<Icon name="close"/> Close
-					</Button>
-					<Button.Or/>
-					<Button
-						color="green"
-						onClick={() => handleViewIssue(state.nextIssue)}
-						disabled={!state.nextIssue}
-					>
-						<Icon name="chevron right"/> Next
-					</Button>
-				</Button.Group>
-			</Modal.Actions>
-		);
-	};
-
 	return (
 		<Layout>
 			<Container>
@@ -194,7 +172,9 @@ const PokerTable = () => {
 						tableId={tableId}
 					/>
 				</Modal.Content>
-				{showModalActions()}
+				{(userId === currentUser.uid) ?
+					<ModalActions nextIssue={state.nextIssue} onClose={handleCloseIssue} onNext={handleViewIssue} />
+				: null}
 			</Modal>
 		</Layout>
 	);
