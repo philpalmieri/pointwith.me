@@ -3,7 +3,7 @@ import {Card, Container, Header, Loader, Segment,} from 'semantic-ui-react';
 import {auth, db} from '../../firebase';
 import './issue.css';
 import {useParams} from 'react-router-dom';
-import {child, onValue, set, update} from 'firebase/database';
+import {child, onValue, update} from 'firebase/database';
 import VotingBlock from './VotingBlock';
 import Controls from './Controls';
 
@@ -146,24 +146,24 @@ const Issue = ({issue}) => {
 		<Container textAlign="center" id="issue">
 			<Header as="h1">{state.title}</Header>
 			<Segment stacked>
-				{(userId !== currentUser.uid) ?
-					<Controls
-						isLocked={state.isLocked}
-						issue={issue}
-						showVotes={state.showVotes}
-					/> : null}
-				<Card.Group
-					itemsPerRow={4}
-					id="voteCards"
-				>
-					{state.votes?.map((v) => (
-						<Card color={(state.mostVotes === v.vote && state.showVotes) ? 'green' : 'blue'}
-							  className={(state.mostVotes === v.vote && state.showVotes) ? 'mode' : ''}
-							  key={v.userId}>
-							{(state.showVotes) ? v.vote : '?'}
-						</Card>
-					))}
-				</Card.Group>
+					{(userId === currentUser.uid) ?
+						<Controls
+							isLocked={state.isLocked}
+							issue={issue}
+							showVotes={state.showVotes}
+						/> : null}
+					<Card.Group
+						itemsPerRow={4}
+						id="voteCards"
+					>
+						{state.votes?.map((v) => (
+							<Card color={(state.mostVotes === v.vote && state.showVotes) ? 'green' : 'blue'}
+								  className={(state.mostVotes === v.vote && state.showVotes) ? 'mode' : ''}
+								  key={v.userId}>
+								{(state.showVotes) ? v.vote : '?'}
+							</Card>
+						))}
+					</Card.Group>
 			</Segment>
 			{!state.isLocked ?
 				<VotingBlock
