@@ -42,7 +42,7 @@ const Layout = ({ children, contentCenter }) => {
             >
               <Icon name="github" />
             </a>
-            &copy; 2020 PointWith.me
+            &copy; {new Date().getFullYear()} PointWith.me
           </p>
         </footer>
       </Container>
