@@ -16,8 +16,8 @@ const defaultProps = {
 const Layout = ({children, contentCenter}) => {
 	const {userId} = useParams();
 	const currentUser = auth.auth.currentUser;
-	const isHost = userId === currentUser.uid
-	const userDisplay = `${currentUser.displayName} - ${isHost ? `HOST` : `ATTENDEE`}`;
+	const isHost = userId === currentUser?.uid
+	const userDisplay = `${currentUser?.displayName || ``} - ${isHost ? `HOST` : `ATTENDEE`}`;
 
 	return (
 		<Container text style={{marginTim: '1em'}}>
@@ -30,7 +30,7 @@ const Layout = ({children, contentCenter}) => {
 					/>
 					<p>Planning Poker for Remote Teams!</p>
 				</Container>
-				{currentUser ? (
+				{!!currentUser ? (
 					<>
 						<Menu.Item>
 							<Icon name="user"/>
