@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Container, Icon, Image, Menu} from 'semantic-ui-react';
+import {Button, Container, Icon, Image, Menu} from 'semantic-ui-react';
 import {auth} from '../firebase';
 import {useParams} from 'react-router-dom';
 
@@ -36,10 +36,10 @@ const Layout = ({children, contentCenter}) => {
 							<Icon name="user"/>
 							{userDisplay}
 						</Menu.Item>
-						<Menu.Item
-							onClick={() => () => auth.auth.signOut()}
-						>
-							Log Out
+						<Menu.Item>
+							<Button negative onClick={() => auth.auth.signOut()}>
+								Logout
+							</Button>
 						</Menu.Item>
 					</>
 				) : null}

@@ -72,7 +72,7 @@ const Dashboard = () => {
     };
 
     return (
-        <Layout>
+        <Layout data-qa={`Dashboard`}>
             <Container>
                 <Segment raised>
                     <PokerTableNameForm handlePokerTableSubmit={createPokerTable}/>
@@ -106,12 +106,6 @@ const Dashboard = () => {
                         )) : `No poker tables found. Create one above!`}
                     </List>
                 </Segment>
-            </Container>
-            <Divider horizontal></Divider>
-            <Container>
-                <Button negative onClick={() => auth.auth.signOut()}>
-                    Logout
-                </Button>
             </Container>
         </Layout>
     );
