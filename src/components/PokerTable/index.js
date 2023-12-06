@@ -168,8 +168,6 @@ const PokerTable = () => {
 				<Modal.Content>
 					<Issue
 						issue={state.currentIssue}
-						userId={userId}
-						tableId={tableId}
 					/>
 				</Modal.Content>
 				{(userId === currentUser.uid) ?
