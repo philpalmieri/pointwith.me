@@ -10,15 +10,18 @@ import Controls from './Controls';
 const Issue = ({issue}) => {
 	const {userId, tableId} = useParams();
 	const currentUser = auth.auth.currentUser;
-	const [state, setState] = useState({
-		title: '',
-		votes: [],
+	const isTableOwner = userId === currentUser.uid;
+	const [issueState, setIssueState] = useState({
+		isLoaded: false,
 		isLocked: false,
 		showVotes: false,
-		userVote: null,
-		mostVotes: -1,
+		title: '',
+	});
+	const [votesState, setVotesState] = useState({
 		isLoaded: false,
-		isTableOwner: false,
+		mostVotes: -1,
+		userVote: null,
+		votes: [],
 	});
 	const issueRef = db.pokerTableIssue(
 		userId,
@@ -30,92 +33,90 @@ const Issue = ({issue}) => {
 	);
 
 	useEffect(() => {
-		loadIssue();
-		loadVotes();
+		return loadIssue();
 	}, []);
 
-	const loadIssue = () => {
-		onValue(issueRef, snapshot => {
-			if (snapshot.exists()) {
-				const issue = snapshot.val();
-				const newState = {
-					...state,
-					title: issue.title,
-					isLocked: issue.isLocked || false,
-					showVotes: issue.showVotes || false,
-					isLoaded: true,
-					isTableOwner: userId === currentUser.uid,
-				};
+	useEffect(() => {
+		return loadVotes();
+	}, []);
 
-				setState(newState);
-			}
-		});
-	};
+	const loadIssue = () => onValue(issueRef, snapshot => {
+		if (snapshot.exists()) {
+			const issue = snapshot.val();
+			const newState = {
+				...issueState,
+				title: issue.title,
+				isLocked: issue.isLocked || false,
+				showVotes: issue.showVotes || false,
+				isLoaded: true,
+			};
+			setIssueState(newState);
+		}
+	});
 
-	const loadVotes = () => {
-		onValue(votesRef, snapshot => {
-			if (snapshot.exists()) {
-				const newVotesList = [];
-				const votes = snapshot.val() || {};
-				for (let vote in votes) {
-					newVotesList.push({
-						...votes[vote],
-						userId: vote,
-					});
-				}
-				newVotesList.sort((v1, v2) => {
-					if (v1.vote > v2.vote) return 1;
-					if (v2.vote > v1.vote) return -1;
-					return 0;
+	const loadVotes = () => onValue(votesRef, snapshot => {
+		if (snapshot.exists()) {
+			const newVotesList = [];
+			const votes = snapshot.val() || {};
+			for (let vote in votes) {
+				newVotesList.push({
+					...votes[vote],
+					userId: vote,
 				});
-
-				// Get most votes
-				const voteTally = newVotesList.reduce((acc, curr) => {
-					if (curr.vote in acc) {
-						acc[curr.vote]++;
-					} else {
-						acc[curr.vote] = 1;
-					}
-					return acc;
-				}, {});
-
-				let mostVotes = -1;
-				let multipleModes = false;
-				for (let points in voteTally) {
-					let currentMostVotes = voteTally[mostVotes] || 0;
-					if (voteTally[points] === currentMostVotes) {
-						multipleModes = true;
-					} else if (voteTally[points] >= currentMostVotes) {
-						mostVotes = parseInt(points, 10);
-						multipleModes = false;
-					}
-				}
-				if (multipleModes) {
-					// don't highlight any point values
-					mostVotes = -1;
-				}
-
-				const myVote =
-					newVotesList.find(v => v.userId === currentUser.uid);
-				const newState = {
-					...state,
-					userVote: (myVote) ? myVote.vote : null,
-					votes: newVotesList.length ? newVotesList : [],
-					mostVotes
-				};
-				setState(newState);
-			} else {
-				console.warn('No votes found');
 			}
-		});
-	};
+			newVotesList.sort((v1, v2) => {
+				if (v1.vote > v2.vote) return 1;
+				if (v2.vote > v1.vote) return -1;
+				return 0;
+			});
+
+			// Get most votes
+			const voteTally = newVotesList.reduce((acc, curr) => {
+				if (curr.vote in acc) {
+					acc[curr.vote]++;
+				} else {
+					acc[curr.vote] = 1;
+				}
+				return acc;
+			}, {});
+
+			let mostVotes = -1;
+			let multipleModes = false;
+			for (let points in voteTally) {
+				let currentMostVotes = voteTally[mostVotes] || 0;
+				if (voteTally[points] === currentMostVotes) {
+					multipleModes = true;
+				} else if (voteTally[points] >= currentMostVotes) {
+					mostVotes = parseInt(points, 10);
+					multipleModes = false;
+				}
+			}
+			if (multipleModes) {
+				// don't highlight any point values
+				mostVotes = -1;
+			}
+
+			const myVote =
+				newVotesList.find(v => v.userId === currentUser.uid);
+			const newState = {
+				...votesState,
+				userVote: (myVote) ? myVote.vote : null,
+				votes: newVotesList.length ? newVotesList : [],
+				mostVotes
+			};
+			// setState(newState);
+			setVotesState(newState);
+		} else {
+			console.warn('No votes found');
+		}
+	});
 
 	const handleSelectVote = (userVote) => {
-		if (userVote === state.userVote) {
+		if (userVote === votesState.userVote) {
 			userVote = null;
 		}
-		setState({
-			...state,
+		setVotesState({
+			...votesState,
 			userVote
 		});
 		update(child(votesRef, currentUser.uid), {vote: userVote});
@@ -124,52 +125,49 @@ const Issue = ({issue}) => {
 	//suggestion() {
 	//let suggestion = '??';
 	//let mode = '??';
-	//if(state.showVotes) {
-	//const total = state.votes.reduce((t, v) => t + v.vote, 0);
-	//const suggestionAvg = (total / state.votes.length);
+	//if(issueState.showVotes) {
+	//const total = votesState.votes.reduce((t, v) => t + v.vote, 0);
+	//const suggestionAvg = (total / votesState.votes.length);
 	//suggestion = availablePoints.find( p => p >= suggestionAvg);
-	//mode = (state.mostVotes > -1) ? state.mostVotes : '--';
+	//mode = (votesState.mostVotes > -1) ? votesState.mostVotes : '--';
 	//}
 	//return(
 	//<Header sub>Mode/Mean ({mode}/{suggestion})</Header>
 	//);
 	//}
-	console.group('Issue');
-	console.log('state', state);
-	console.groupEnd();
 
-	if (!state.isLoaded) {
+	if (!issueState.isLoaded) {
 		return (<Loader size="large">Loading</Loader>);
 	}
 
 	return (
 		<Container textAlign="center" id="issue">
-			<Header as="h1">{state.title}</Header>
+			<Header as="h1">{issueState.title}</Header>
 			<Segment stacked>
-					{(userId === currentUser.uid) ?
-						<Controls
-							isLocked={state.isLocked}
-							issue={issue}
-							showVotes={state.showVotes}
-						/> : null}
-					<Card.Group
-						itemsPerRow={4}
-						id="voteCards"
-					>
-						{state.votes?.map((v) => (
-							<Card color={(state.mostVotes === v.vote && state.showVotes) ? 'green' : 'blue'}
-								  className={(state.mostVotes === v.vote && state.showVotes) ? 'mode' : ''}
-								  key={v.userId}>
-								{(state.showVotes) ? v.vote : '?'}
-							</Card>
-						))}
-					</Card.Group>
+				{(isTableOwner) ?
+					<Controls
+						isLocked={issueState.isLocked}
+						issue={issue}
+						showVotes={issueState.showVotes}
+					/> : null}
+				<Card.Group
+					itemsPerRow={4}
+					id="voteCards"
+				>
+					{votesState.votes?.map((v) => (
+						<Card color={(votesState.mostVotes === v.vote && issueState.showVotes) ? 'green' : 'blue'}
+							  className={(votesState.mostVotes === v.vote && issueState.showVotes) ? 'mode' : ''}
+							  key={v.userId}>
+							{(issueState.showVotes) ? v.vote : '?'}
+						</Card>
+					))}
+				</Card.Group>
 			</Segment>
-			{!state.isLocked ?
+			{!issueState.isLocked ?
 				<VotingBlock
-					isLocked={state.isLocked}
+					isLocked={issueState.isLocked}
 					onClick={handleSelectVote}
-					userVote={state.userVote}
+					userVote={votesState.userVote}
 				/> : null}
 		</Container>
 	);
