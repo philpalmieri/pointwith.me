@@ -153,6 +153,7 @@ const PokerTable = () => {
 									<div className="actions">
 										<button
 											className="pwm-delete"
+											data-testid="delete-issue-button"
 											onClick={removeIssue(s.id)}
 										>
 											<Icon name="times" color="red"/>
@@ -179,3 +180,6 @@ const PokerTable = () => {
 };
 
 export default withAuthentication(PokerTable);
+
+// Export PokerTable without the withAuthentication HOC for testing
+export {PokerTable};
