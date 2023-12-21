@@ -3,34 +3,9 @@ import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import {Button, Icon} from 'semantic-ui-react';
 import {popUpSignIn} from '../../firebase/auth';
+import {auth} from '../../firebase';
 
 const propTypes = {
-    buttonList: PropTypes.shape({
-        github: PropTypes.shape({
-            visible: PropTypes.bool.isRequired,
-            provider: PropTypes.func.isRequired
-        }),
-        google: PropTypes.shape({
-            visible: PropTypes.bool.isRequired,
-            provider: PropTypes.func.isRequired
-        }),
-        microsoft: PropTypes.shape({
-            visible: PropTypes.bool.isRequired,
-            provider: PropTypes.func.isRequired
-        }),
-        //anonymous: {
-        //visible: PropTypes.bool.isRequired,
-        //provider: PropTypes.func.isRequired
-        //},
-        //twitter: PropTypes.shape({
-        //visible: PropTypes.bool.isRequired,
-        //provider: PropTypes.func.isRequired
-        //}),
-        //facebook: PropTypes.shape({
-        //visible: PropTypes.bool.isRequired,
-        //provider: PropTypes.func.isRequired
-        //})
-    }).isRequired,
     auth: PropTypes.object.isRequired,
     currentProviders: PropTypes.func
 };
@@ -39,7 +14,38 @@ const defaultProps = {
     currentProviders: null
 };
 
-const SocialButtonList = ({buttonList, auth, currentProviders}) => {
+const buttonList = {
+    github: {
+        visible: true,
+        provider: () => {
+            const provider = auth.githubOAuth();
+            provider.addScope('user');
+            return provider;
+        }
+    },
+    google: {
+        visible: true,
+        provider: () => auth.googleOAuth()
+    },
+    microsoft: {
+        visible: true,
+        provider: () => auth.azureOAuth()
+    },
+    anonymous: {
+      visible: false,
+      provider: () => auth.anonymousOAuth()
+    },
+    //twitter: {
+    //visible: true,
+    //provider: () => auth.twitterOAuth()
+    //},
+    //facebook: {
+    //visible: true,
+    //provider: () => auth.facebookOAuth()
+    //}
+};
+
+const SocialButtonList = ({auth, currentProviders}) => {
     const navigate = useNavigate();
     const authHandler = authData => {
         if (authData) {
@@ -70,16 +76,22 @@ const SocialButtonList = ({buttonList, auth, currentProviders}) => {
     const renderButtonList = provider => {
         const visible = buttonList[provider].visible;
 
-        return (
-            <Button
-                primary
-                key={provider}
-                onClick={e => authenticate(e, provider)}
-                className={(!visible) ? 'hidden' : ''}
-            >
-                <Icon name={provider}></Icon> {provider}
-            </Button>
-        );
+        if (visible) {
+            return (
+                <Button
+                    primary
+                    key={provider}
+                    onClick={e => {
+                        console.log('clicked');
+                        authenticate(e, provider)
+                    }}
+                >
+                    <Icon name={provider}></Icon> {provider}
+                </Button>
+            );
+        } else {
+            return null;
+        }
     };
 
     return (
