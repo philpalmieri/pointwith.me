@@ -8,7 +8,7 @@ const IssueNameForm = ({ handleIssueSubmit }) => {
         setNewIssueName('');
     }
     return (
-        <Form onSubmit={handleSubmit}>
+        <Form name='issue-name-form' onSubmit={handleSubmit}>
             <Form.Field>
                 <label>Open Issues</label>
                 <input
