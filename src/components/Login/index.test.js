@@ -23,7 +23,7 @@ jest.mock('../../firebase', () => ({
 	}
 }));
 jest.mock('../../containers/Layout', () => ({ children }) => <div data-testid="layout">{children}</div>);
-jest.mock('../SocialButtonList', () => ({ buttonList }) => <div data-testid="social-button-list"></div>);
+jest.mock('../SocialButtonList', () => () => <div data-testid="social-button-list"></div>);
 
 describe('Login Component', () => {
 	test('renders Login component', () => {

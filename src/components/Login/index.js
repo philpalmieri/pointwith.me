@@ -6,37 +6,6 @@ import SocialButtonList from '../SocialButtonList';
 import {Divider, Grid, Header, Segment} from 'semantic-ui-react';
 import {auth} from '../../firebase';
 
-const buttonList = {
-	github: {
-		visible: true,
-		provider: () => {
-			const provider = auth.githubOAuth();
-			provider.addScope('user');
-			return provider;
-		}
-	},
-	google: {
-		visible: true,
-		provider: () => auth.googleOAuth()
-	},
-	microsoft: {
-		visible: true,
-		provider: () => auth.azureOAuth()
-	},
-	// anonymous: {
-	//   visible: false,
-	//   provider: () => auth.anonymousOAuth()
-	// },
-	//twitter: {
-	//visible: true,
-	//provider: () => auth.twitterOAuth()
-	//},
-	//facebook: {
-	//visible: true,
-	//provider: () => auth.facebookOAuth()
-	//}
-};
-
 const Login = () => {
 	const navigate = useNavigate();
 	useEffect(() => {
@@ -72,7 +41,7 @@ const Login = () => {
 							than your account ID for OAuth
 						</Header>
 						<Divider horizontal/>
-						<SocialButtonList buttonList={buttonList} auth={auth}/>
+						<SocialButtonList auth={auth}/>
 						<Link to="/about"></Link>
 					</Segment>
 				</Grid.Column>
