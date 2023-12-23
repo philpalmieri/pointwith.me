@@ -1,95 +1,111 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withRouter } from 'react-router-dom';
-import { Button, Icon } from 'semantic-ui-react'
+import {useNavigate} from 'react-router-dom';
+import {Button, Icon} from 'semantic-ui-react';
+import {
+    anonymousOAuth,
+    azureOAuth,
+    facebookOAuth,
+    githubOAuth,
+    googleOAuth,
+    popUpSignIn,
+    twitterOAuth
+} from '../../firebase/auth';
 
 const propTypes = {
-  buttonList: PropTypes.shape({
-    github: PropTypes.shape({
-      visible: PropTypes.bool.isRequired,
-      provider: PropTypes.func.isRequired
-    }),
-    google: {
-      visible: PropTypes.bool.isRequired,
-      provider: PropTypes.func.isRequired
-    },
-    microsoft: {
-      visible: PropTypes.bool.isRequired,
-      provider: PropTypes.func.isRequired
-    },
-    //anonymous: {
-      //visible: PropTypes.bool.isRequired,
-      //provider: PropTypes.func.isRequired
-    //},
-    //twitter: PropTypes.shape({
-      //visible: PropTypes.bool.isRequired,
-      //provider: PropTypes.func.isRequired
-    //}),
-    //facebook: PropTypes.shape({
-      //visible: PropTypes.bool.isRequired,
-      //provider: PropTypes.func.isRequired
-    //})
-  }).isRequired,
-  auth: PropTypes.func.isRequired,
-  currentProviders: PropTypes.func
+    currentUser: PropTypes.object,
+    currentProviders: PropTypes.func
 };
 
 const defaultProps = {
-  currentProviders: null
+    currentProviders: null
 };
 
-const SocialButtonList = ({ history, buttonList, auth, currentProviders }) => {
-  const authHandler = authData => {
-    if (authData) {
-      if (currentProviders === null) {
-        history.push('/dashboard');
-      } else {
-        currentProviders(authData.user.providerData);
-      }
-    } else {
-      console.error('Error authenticating');
+const buttonList = {
+    github: {
+        visible: true,
+        provider: () => {
+            const provider = githubOAuth();
+            provider.addScope('user');
+            return provider;
+        }
+    },
+    google: {
+        visible: true,
+        provider: () => googleOAuth()
+    },
+    microsoft: {
+        visible: true,
+        provider: () => azureOAuth()
+    },
+    anonymous: {
+        visible: false,
+        provider: () => anonymousOAuth()
+    },
+    twitter: {
+        visible: false,
+        provider: () => twitterOAuth()
+    },
+    facebook: {
+        visible: false,
+        provider: () => facebookOAuth()
     }
-  };
+};
 
-  const authenticate = (e, provider) => {
-    const providerOAuth = buttonList[provider].provider();
+const SocialButtonList = ({currentUser, currentProviders}) => {
+    const navigate = useNavigate();
 
-    if (!auth().currentUser) {
-      auth()
-        .signInWithPopup(providerOAuth)
-        .then(authHandler)
-        .catch(err => console.error(err));
-    } else {
-      auth()
-        .currentUser.linkWithPopup(providerOAuth)
-        .then(authHandler)
-        .catch(err => console.error(err));
-    }
-  };
+    const authHandler = authData => {
+        if (authData) {
+            if (currentProviders === null) {
+                navigate('/dashboard');
+            } else {
+                currentProviders(authData.user.providerData);
+            }
+        } else {
+            console.error('Error authenticating');
+        }
+    };
 
-  const renderButtonList = provder => {
-    const visible = buttonList[provder].visible;
+    const authenticate = (e, provider) => {
+        const providerOAuth = buttonList[provider].provider();
+        if (!currentUser) {
+            popUpSignIn(providerOAuth)
+                .then(authHandler)
+                .catch(err => console.error(err));
+        } else {
+            currentUser.linkWithPopup(providerOAuth)
+                .then(authHandler)
+                .catch(err => console.error(err));
+        }
+    };
+
+    const renderButtonList = provider => {
+        const visible = buttonList[provider].visible;
+
+        if (visible) {
+            return (
+                <Button
+                    primary
+                    key={provider}
+                    onClick={e => authenticate(e, provider)}
+                >
+                    <Icon name={provider}></Icon> {provider}
+                </Button>
+            );
+        } else {
+            return null;
+        }
+    };
 
     return (
-      <Button
-        primary
-        key={provder}
-        onClick={e => authenticate(e, provder)}
-        className={ (!visible) ? 'hidden' : ''}
-      >
-        <Icon name={provder}></Icon> {provder}
-      </Button>
+        <div id="loginButtons">
+            {Object.keys(buttonList).map(renderButtonList)}
+        </div>
     );
-  };
-
-  return (
-    <div id="loginButtons">
-      {Object.keys(buttonList).map(renderButtonList)}
-    </div>
-  );
 };
 
 SocialButtonList.propTypes = propTypes;
 SocialButtonList.defaultProps = defaultProps;
 
-export default withRouter(SocialButtonList);
+export default SocialButtonList;

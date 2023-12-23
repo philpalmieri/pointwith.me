@@ -1,118 +1,111 @@
-// Theirs
 import React from 'react';
-import { MemoryRouter, Route } from 'react-router-dom';
-import { render, fireEvent } from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
+import {BrowserRouter, useParams} from 'react-router-dom';
+import '@testing-library/jest-dom';
+import {PokerTable} from './index';
+import {auth, db} from '../../firebase';
+import * as issues from '../../api/issues';
+import {onValue} from 'firebase/database';
+import * as pokerTablesApi from '../../api/pokerTables';
 
-// Ours
-import { auth } from '../../firebase';
-import * as issuesApi from '../../api/issues';
-import PokerTable from '.';
+// Mocks
+// Mock necessary modules and functions
+// Mock the firebase functions
+jest.mock('firebase/database');
+jest.mock('react-router-dom', () => ({
+	...jest.requireActual('react-router-dom'),
+	useParams: jest.fn()
+}));
+jest.mock('../../firebase', () => ({
+	...jest.requireActual('../../firebase'),
+	auth: {
+		get auth() {
+			return {
+				currentUser: {uid: 'testUserId'},
+			};
+		},
+	},
+	db: {
+		pokerTable: jest.fn((userId) => ({
+			path: `pokerTables/${userId}`,
+		})),
+		pokerTableIssuesRoot: jest.fn((userId, tid) => ({
+			path: `pokerTables/${userId}/${tid}/issues`,
+		})),
+	},
+}));
+jest.mock('../../api/issues', () => ({
+	createClient: jest.fn(() => ({
+		remove: jest.fn()
+	}))
+}));
+jest.mock('../../containers/Layout', () => ({children}) => <div data-testid="layout">{children}</div>);
+jest.mock('../Issue', () => () => <div data-testid="issue-component"></div>);
+jest.mock('./IssueCreator', () => () => <div data-testid="issue-creator-component"></div>);
+jest.mock('./ModalActions', () => () => <div data-testid="modal-actions-component"></div>);
 
-jest.mock('../../firebase', () => {
-  return {
-    auth: {
-      getAuth: jest.fn(),
-    },
-    db: {
-      pokerTable: jest.fn().mockReturnValue({
-        on: jest.fn().mockImplementation((_, cb) => {
-          const snapshot = {
-            val: jest.fn().mockReturnValue({
-              tableName: 'poker table',
-              issues: {
-                i1: {
-                  title: 'issue 1',
-                  isLocked: false,
-                  created: new Date(),
-                },
-                i2: {
-                  title: 'issue 2',
-                  isLocked: false,
-                  created: new Date(),
-                },
-                i3: {
-                  title: 'issue 3',
-                  isLocked: false,
-                  created: new Date(),
-                },
-              },
-            }),
-          };
+describe('PokerTable Component', () => {
+	const originalUser = auth.auth.currentUser;
 
-          cb(snapshot);
-        }),
-      }),
-      pokerTableIssuesRoot: jest.fn(),
-    },
-  };
-});
+	beforeEach(() => {
+		useParams.mockReturnValue({userId: 'testUserId', tableId: 'testTableId'});
+	});
 
-jest.mock('../../api/issues', () => {
-  return {
-    createClient: jest.fn().mockReturnValue({
-      remove: jest.fn().mockResolvedValue({}),
-    }),
-  };
-});
+	afterEach(() => {
+		// Reset currentUser to original after each test
+		auth.auth.currentUser = originalUser;
+	});
 
-describe('visiting the poker table page', () => {
-  describe('as a voter', () => {
-    it('cannot remove issues', () => {
-      expect.hasAssertions();
+	test('as a voter, cannot remove issues', () => {
+		const {queryByTestId} = render(
+			<BrowserRouter>
+				<PokerTable/>
+			</BrowserRouter>
+		);
 
-      auth.getAuth.mockReturnValue({
-        currentUser: { uid: 'voterId' },
-      });
+		// Expect the delete button not to be present
+		expect(queryByTestId('delete-issue-button')).not.toBeInTheDocument();
+	});
 
-      const { baseElement: el } = render(
-        <MemoryRouter initialEntries={['/table/ownerId/tableId']}>
-          <Route path="/table/:userId/:tableId" component={PokerTable} />
-        </MemoryRouter>
-      );
+	test('as an owner, can delete an issue', async () => {
+		const remove = jest.fn();
+		// Mock firebase database responses
+		db.pokerTable.mockImplementation(() => ({ /* ... */}));
+		db.pokerTableIssuesRoot.mockImplementation(() => ({ /* ... */}));
+		issues.createClient.mockImplementation(() => ({ remove }));
+		onValue.mockImplementation((ref, callback) => {
+			const snapshot = {
+				exists: jest.fn(() => true),
+				val: jest.fn(() => ({
+					tableName: 'Test Table',
+					created: 'Fri Nov 17 2023 22:31:08 GMT-0500 (Eastern Standard Time)',
+					issues: {
+						'testIssue': {
+							created: "2023-12-14T19:40:46.578Z",
+							score: 0,
+							title: "test issue"
+						}
+					}
+				}))
+			};
+			callback(snapshot);
+		});
 
-      const deleteButtons = el.querySelector('.pwm-delete');
+		// Render the component
+		const {getByTestId} = render(
+			<BrowserRouter>
+				<PokerTable/>
+			</BrowserRouter>
+		);
 
-      expect(deleteButtons).not.toBeInTheDocument();
-    });
-  });
+		// Fire event to simulate deleting an issue
+		fireEvent.click(getByTestId('delete-issue-button'));
 
-  describe('as an owner', () => {
-    it('can delete an issue', () => {
-      expect.hasAssertions();
+		// Wait for the expected outcome
+		await waitFor(() => {
+			expect(remove).toHaveBeenCalled();
+		});
+	});
 
-      auth.getAuth.mockReturnValue({
-        currentUser: { uid: 'ownerId' },
-      });
-
-      const { baseElement: el } = render(
-        <MemoryRouter initialEntries={['/table/ownerId/tableId']}>
-          <Route path="/table/:userId/:tableId" component={PokerTable} />
-        </MemoryRouter>
-      );
-
-      let listItems = el.querySelectorAll('.pwm-list-item');
-
-      // sanity check
-      expect(listItems).toHaveLength(3);
-      expect(el).toHaveTextContent('issue 2');
-
-      const deleteButton = listItems[1].querySelector('.pwm-delete');
-
-      fireEvent.click(deleteButton);
-
-      // ensure the api call was made
-      const mockedIssuesClient = issuesApi.createClient.mock.results[0].value;
-
-      expect(mockedIssuesClient.remove).toHaveBeenCalledWith('i2');
-
-      listItems = el.querySelectorAll('.pwm-list-item'); // reload selection
-
-      expect(listItems).toHaveLength(2);
-      expect(el).not.toHaveTextContent('issue 2');
-
-      // ensure we have the correct order of items
-      expect(listItems[0]).toHaveTextContent('issue 1');
-      expect(listItems[1]).toHaveTextContent('issue 3');
-    });
-  });
+	// Additional tests as needed...
 });

@@ -1,29 +1,30 @@
-import firebase from './firebase';
-
-export const getAuth = () => {
-  return firebase.auth();
-};
+import {getAuth, GithubAuthProvider, TwitterAuthProvider, FacebookAuthProvider, GoogleAuthProvider, OAuthProvider, signInAnonymously, signInWithPopup} from 'firebase/auth';
+import app from './firebase';
+// Initialize Firebase Authentication and get a reference to the service
+export const auth = getAuth(app);
 
 export const githubOAuth = () => {
-  return new firebase.firebase_.auth.GithubAuthProvider();
+  return new GithubAuthProvider();
 };
 
 export const twitterOAuth = () => {
-  return new firebase.firebase_.auth.TwitterAuthProvider();
+  return new TwitterAuthProvider();
 };
 
 export const facebookOAuth = () => {
-  return new firebase.firebase_.auth.FacebookAuthProvider();
+  return new FacebookAuthProvider();
 };
 
 export const googleOAuth = () => {
-  return new firebase.firebase_.auth.GoogleAuthProvider();
+  return new GoogleAuthProvider();
 };
 
 export const azureOAuth = () => {
-  return new firebase.firebase_.auth.OAuthProvider('microsoft.com');
+  return new OAuthProvider('microsoft.com');
 };
 
 export const anonymousOAuth = () => {
-  return new firebase.firebase_.auth.signInAnonymously();
+  return new signInAnonymously();
 };
+
+export const popUpSignIn = (provider) => signInWithPopup(auth, provider);

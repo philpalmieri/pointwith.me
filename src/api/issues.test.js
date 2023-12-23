@@ -1,36 +1,33 @@
 import * as db from '../firebase/db';
-import * as issues from './issues';
+import { remove as firebaseRemove } from 'firebase/database';
+import { createClient } from './issues';
 
-jest.mock('../firebase/db', () => {
-  const mockedRemove = jest.fn();
+// Mocks
+jest.mock('firebase/database', () => ({
+    remove: jest.fn(),
+}));
+jest.mock('../firebase/db', () => ({
+    pokerTableIssue: jest.fn(),
+}));
 
-  return {
-    pokerTableIssue: jest.fn().mockReturnValue({ remove: mockedRemove }),
-  };
-});
+describe('Issues API client', () => {
+    const userId = 'testUserId';
+    const tableId = 'testTableId';
+    const issueId = 'testIssueId';
 
-const mockedDB = db;
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
-let issueApi;
+    test('remove function calls firebaseRemove with correct path', () => {
+        const client = createClient(userId, tableId);
+        client.remove(issueId);
 
-describe('issues', () => {
-  beforeAll(() => {
-    issueApi = issues.createClient('userId', 'pokerTableId');
-  });
+        // Ensure the correct path is constructed
+        expect(db.pokerTableIssue).toHaveBeenCalledWith(userId, tableId, issueId);
 
-  it('can delete an issue from a poker table', async () => {
-    expect.assertions(2);
-
-    await issueApi.remove('issueId');
-
-    expect(mockedDB.pokerTableIssue).toHaveBeenCalledWith(
-      'userId',
-      'pokerTableId',
-      'issueId'
-    );
-
-    const issue = mockedDB.pokerTableIssue.mock.results[0].value;
-
-    expect(issue.remove).toHaveBeenCalledWith();
-  });
+        // Ensure firebaseRemove is called with the path returned from pokerTableIssue
+        const path = db.pokerTableIssue.mock.results[0].value;
+        expect(firebaseRemove).toHaveBeenCalledWith(path);
+    });
 });
