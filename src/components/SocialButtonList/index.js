@@ -2,11 +2,18 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {useNavigate} from 'react-router-dom';
 import {Button, Icon} from 'semantic-ui-react';
-import {popUpSignIn} from '../../firebase/auth';
-import {auth} from '../../firebase';
+import {
+    anonymousOAuth,
+    azureOAuth,
+    facebookOAuth,
+    githubOAuth,
+    googleOAuth,
+    popUpSignIn,
+    twitterOAuth
+} from '../../firebase/auth';
 
 const propTypes = {
-    auth: PropTypes.object.isRequired,
+    currentUser: PropTypes.object,
     currentProviders: PropTypes.func
 };
 
@@ -18,35 +25,36 @@ const buttonList = {
     github: {
         visible: true,
         provider: () => {
-            const provider = auth.githubOAuth();
+            const provider = githubOAuth();
             provider.addScope('user');
             return provider;
         }
     },
     google: {
         visible: true,
-        provider: () => auth.googleOAuth()
+        provider: () => googleOAuth()
     },
     microsoft: {
         visible: true,
-        provider: () => auth.azureOAuth()
+        provider: () => azureOAuth()
     },
     anonymous: {
-      visible: false,
-      provider: () => auth.anonymousOAuth()
+        visible: false,
+        provider: () => anonymousOAuth()
     },
-    //twitter: {
-    //visible: true,
-    //provider: () => auth.twitterOAuth()
-    //},
-    //facebook: {
-    //visible: true,
-    //provider: () => auth.facebookOAuth()
-    //}
+    twitter: {
+        visible: false,
+        provider: () => twitterOAuth()
+    },
+    facebook: {
+        visible: false,
+        provider: () => facebookOAuth()
+    }
 };
 
-const SocialButtonList = ({auth, currentProviders}) => {
+const SocialButtonList = ({currentUser, currentProviders}) => {
     const navigate = useNavigate();
+
     const authHandler = authData => {
         if (authData) {
             if (currentProviders === null) {
@@ -61,13 +69,12 @@ const SocialButtonList = ({auth, currentProviders}) => {
 
     const authenticate = (e, provider) => {
         const providerOAuth = buttonList[provider].provider();
-        if (!auth.auth.currentUser) {
+        if (!currentUser) {
             popUpSignIn(providerOAuth)
                 .then(authHandler)
                 .catch(err => console.error(err));
         } else {
-            auth.auth
-                .currentUser.linkWithPopup(providerOAuth)
+            currentUser.linkWithPopup(providerOAuth)
                 .then(authHandler)
                 .catch(err => console.error(err));
         }
@@ -81,10 +88,7 @@ const SocialButtonList = ({auth, currentProviders}) => {
                 <Button
                     primary
                     key={provider}
-                    onClick={e => {
-                        console.log('clicked');
-                        authenticate(e, provider)
-                    }}
+                    onClick={e => authenticate(e, provider)}
                 >
                     <Icon name={provider}></Icon> {provider}
                 </Button>

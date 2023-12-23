@@ -41,7 +41,7 @@ const Login = () => {
 							than your account ID for OAuth
 						</Header>
 						<Divider horizontal/>
-						<SocialButtonList auth={auth}/>
+						<SocialButtonList currentUser={auth.auth.currentUser}/>
 						<Link to="/about"></Link>
 					</Segment>
 				</Grid.Column>
